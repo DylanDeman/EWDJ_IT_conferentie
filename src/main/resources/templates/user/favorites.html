@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="layout/base :: head">
+    <title th:text="#{favorite.list.title} + ' - ' + #{app.name}">My Favorites</title>
+</head>
+<body>
+    <div th:replace="layout/base :: nav"></div>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 th:text="#{favorite.list.title}">My Favorites</h1>
+            </div>
+            <div class="col-auto">
+                <a th:href="@{/events}" class="btn btn-primary" th:text="#{event.browse.button}">
+                    Browse Events
+                </a>
+            </div>
+        </div>
+
+        <!-- Favorites List -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div th:each="event : ${favorites}" class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${event.name}">Event Name</h5>
+                        <p class="card-text" th:text="${#strings.abbreviate(event.description, 100)}">Description</p>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4" th:text="#{event.datetime}">Date & Time</dt>
+                            <dd class="col-sm-8" th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}">
+                                Date Time
+                            </dd>
+                            <dt class="col-sm-4" th:text="#{event.room}">Room</dt>
+                            <dd class="col-sm-8" th:text="${event.room.name}">Room</dd>
+                            <dt class="col-sm-4" th:text="#{event.price}">Price</dt>
+                            <dd class="col-sm-8" th:text="${#numbers.formatCurrency(event.price)}">Price</dd>
+                        </dl>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a th:href="@{/events/{id}(id=${event.id})}" class="btn btn-primary" 
+                               th:text="#{event.details.button}">View Details</a>
+                            <form th:action="@{/user/favorites/remove/{id}(id=${event.id})}" method="post" 
+                                  style="display: inline;">
+                                <button type="submit" class="btn btn-danger" 
+                                        th:text="#{favorite.remove.button}">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(favorites)}" class="text-center mt-4">
+            <p class="lead" th:text="#{favorite.list.empty}">You haven't added any events to your favorites yet.</p>
+            <a th:href="@{/events}" class="btn btn-primary mt-3" th:text="#{event.browse.button}">
+                Browse Events
+            </a>
+        </div>
+    </div>
+</body>
+</html> 

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="layout/base :: head">
+    <title th:text="${room.id == null ? #messages.msg('room.create.title') : #messages.msg('room.edit.title')} + ' - ' + #{app.name}">
+        Room Form
+    </title>
+</head>
+<body>
+    <div th:replace="layout/base :: nav"></div>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h1 class="card-title text-center mb-4" 
+                            th:text="${room.id == null ? #messages.msg('room.create.title') : #messages.msg('room.edit.title')}">
+                            Create/Edit Room
+                        </h1>
+
+                        <form th:action="@{${room.id == null ? '/rooms' : '/rooms/' + room.id}}" 
+                              th:object="${room}" method="post" class="needs-validation" novalidate>
+                            
+                            <div class="mb-3">
+                                <label for="name" class="form-label" th:text="#{room.name}">Name</label>
+                                <input type="text" class="form-control" id="name" th:field="*{name}" required
+                                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" 
+                                     th:errors="*{name}">Name error</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="location" class="form-label" th:text="#{room.location}">Location</label>
+                                <input type="text" class="form-control" id="location" th:field="*{location}" 
+                                       required
+                                       th:classappend="${#fields.hasErrors('location')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('location')}" 
+                                     th:errors="*{location}">Location error</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="capacity" class="form-label" th:text="#{room.capacity}">Capacity</label>
+                                <input type="number" class="form-control" id="capacity" th:field="*{capacity}" 
+                                       min="1" required
+                                       th:classappend="${#fields.hasErrors('capacity')} ? 'is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('capacity')}" 
+                                     th:errors="*{capacity}">Capacity error</div>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/rooms}" class="btn btn-secondary me-md-2" 
+                                   th:text="#{room.cancel.button}">Cancel</a>
+                                <button type="submit" class="btn btn-primary" 
+                                        th:text="${room.id == null ? #messages.msg('room.create.button') : #messages.msg('room.update.button')}">
+                                    Create/Update Room
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Form validation
+        (function () {
+            'use strict'
+            const forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+</body>
+</html> 

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="layout/base :: head">
+    <title th:text="#{event.list.title} + ' - ' + #{app.name}">Events</title>
+</head>
+<body>
+    <div th:replace="layout/base :: nav"></div>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col">
+                <h1 th:text="#{event.list.title}">Events</h1>
+            </div>
+            <div class="col-auto" sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/events/new}" class="btn btn-primary" th:text="#{event.create.button}">
+                    Create New Event
+                </a>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form th:action="@{/events}" method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="date" class="form-label" th:text="#{event.filter.date}">Date</label>
+                        <input type="date" class="form-control" id="date" name="date" 
+                               th:value="${param.date}" th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="room" class="form-label" th:text="#{event.filter.room}">Room</label>
+                        <select class="form-select" id="room" name="room">
+                            <option value="">All Rooms</option>
+                            <option th:each="room : ${rooms}" 
+                                    th:value="${room.id}" 
+                                    th:text="${room.name}"
+                                    th:selected="${param.room != null and param.room[0] == room.id.toString()}">
+                                Room Name
+                            </option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="sort" class="form-label" th:text="#{event.filter.sort}">Sort By</label>
+                        <select class="form-select" id="sort" name="sort">
+                            <option value="datetime" th:selected="${param.sort == null or param.sort[0] == 'datetime'}"
+                                    th:text="#{event.sort.datetime}">Date & Time</option>
+                            <option value="name" th:selected="${param.sort != null and param.sort[0] == 'name'}"
+                                    th:text="#{event.sort.name}">Name</option>
+                            <option value="price" th:selected="${param.sort != null and param.sort[0] == 'price'}"
+                                    th:text="#{event.sort.price}">Price</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary" th:text="#{event.filter.apply}">Apply Filters</button>
+                        <a th:href="@{/events}" class="btn btn-secondary" th:text="#{event.filter.clear}">Clear Filters</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Events List -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            <div th:each="event : ${events}" class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${event.name}">Event Name</h5>
+                        <p class="card-text" th:text="${#strings.abbreviate(event.description, 100)}">Description</p>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4" th:text="#{event.datetime}">Date & Time</dt>
+                            <dd class="col-sm-8" th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}">
+                                Date Time
+                            </dd>
+                            <dt class="col-sm-4" th:text="#{event.room}">Room</dt>
+                            <dd class="col-sm-8" th:text="${event.room.name}">Room</dd>
+                            <dt class="col-sm-4" th:text="#{event.price}">Price</dt>
+                            <dd class="col-sm-8" th:text="${#numbers.formatCurrency(event.price)}">Price</dd>
+                        </dl>
+                    </div>
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a th:href="@{/events/{id}(id=${event.id})}" class="btn btn-primary" 
+                               th:text="#{event.details.button}">View Details</a>
+                            <div sec:authorize="hasRole('USER')">
+                                <form th:if="${!event.favorite}" 
+                                      th:action="@{/user/favorites/add/{id}(id=${event.id})}" 
+                                      method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-outline-primary" 
+                                            th:text="#{favorite.add.button}">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                </form>
+                                <form th:if="${event.favorite}" 
+                                      th:action="@{/user/favorites/remove/{id}(id=${event.id})}" 
+                                      method="post" style="display: inline;">
+                                    <button type="submit" class="btn btn-primary" 
+                                            th:text="#{favorite.remove.button}">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(events)}" class="text-center mt-4">
+            <p class="lead" th:text="#{event.list.empty}">No events found matching your criteria.</p>
+        </div>
+    </div>
+</body>
+</html> 

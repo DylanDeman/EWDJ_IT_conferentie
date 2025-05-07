@@ -1,0 +1,6 @@
+com\springboot\config\SecurityConfigTest.class
+com\springboot\security\SecurityPenetrationTest.class
+com\springboot\EWDJ_IT_conferentie\EwdjItConferentieApplicationTests.class
+com\springboot\controller\api\EventApiControllerTest.class
+com\springboot\security\CustomUserDetailsServiceTest.class
+com\springboot\service\UserServiceTest.class

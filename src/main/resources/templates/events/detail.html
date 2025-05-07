@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="layout/base :: head">
+    <title th:text="${event.name} + ' - ' + #{app.name}">Event Details</title>
+</head>
+<body>
+    <div th:replace="layout/base :: nav"></div>
+
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <h1 class="card-title" th:text="${event.name}">Event Name</h1>
+                    <div>
+                        <a th:href="@{/events}" class="btn btn-secondary" th:text="#{event.back.button}">Back to Events</a>
+                        <div sec:authorize="hasRole('ADMIN')" class="mt-2">
+                            <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn btn-warning" 
+                               th:text="#{event.edit.button}">Edit</a>
+                            <form th:action="@{/events/{id}/delete(id=${event.id})}" method="post" 
+                                  style="display: inline;">
+                                <button type="submit" class="btn btn-danger" 
+                                        th:text="#{event.delete.button}"
+                                        onclick="return confirm('#{event.delete.confirm}')">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <h3 th:text="#{event.description}">Description</h3>
+                        <p class="lead" th:text="${event.description}">Description</p>
+
+                        <h3 th:text="#{event.speakers}">Speakers</h3>
+                        <ul class="list-unstyled">
+                            <li th:each="speaker : ${event.speakers}" th:text="${speaker}">Speaker</li>
+                        </ul>
+
+                        <h3 th:text="#{event.details}">Event Details</h3>
+                        <dl class="row">
+                            <dt class="col-sm-3" th:text="#{event.datetime}">Date & Time</dt>
+                            <dd class="col-sm-9" th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}">
+                                Date Time
+                            </dd>
+
+                            <dt class="col-sm-3" th:text="#{event.room}">Room</dt>
+                            <dd class="col-sm-9">
+                                <span th:text="${event.room.name}">Room</span>
+                                (<span th:text="${event.room.capacity}">Capacity</span> 
+                                <span th:text="#{event.capacity.seats}">seats</span>)
+                            </dd>
+
+                            <dt class="col-sm-3" th:text="#{event.price}">Price</dt>
+                            <dd class="col-sm-9" th:text="${#numbers.formatCurrency(event.price)}">Price</dd>
+
+                            <dt class="col-sm-3" th:text="#{event.beamer.code}">Beamer Code</dt>
+                            <dd class="col-sm-9" th:text="${event.beamerCode}">Beamer Code</dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h4 th:text="#{event.actions}">Actions</h4>
+                                <div sec:authorize="hasRole('USER')">
+                                    <div th:if="${!isFavorite}">
+                                        <form th:action="@{/user/favorites/add/{id}(id=${event.id})}" method="post">
+                                            <button type="submit" class="btn btn-primary btn-block" 
+                                                    th:text="#{favorite.add.button}">
+                                                Add to Favorites
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div th:if="${isFavorite}">
+                                        <form th:action="@{/user/favorites/remove/{id}(id=${event.id})}" method="post">
+                                            <button type="submit" class="btn btn-danger btn-block" 
+                                                    th:text="#{favorite.remove.button}">
+                                                Remove from Favorites
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
