@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.springboot.domain.Room;
-import com.springboot.domain.Event;
+import domain.Event;
+import domain.Room;
 
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {

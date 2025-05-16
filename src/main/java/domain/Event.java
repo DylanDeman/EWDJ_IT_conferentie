@@ -18,8 +18,25 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(exclude = "id")
+@Getter
+@Setter
+@Table(name = "events")
 public class Event implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -32,8 +49,10 @@ public class Event implements Serializable {
 	private String description;
 
 	@ElementCollection
+	@Builder.Default
 	@CollectionTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"))
 	@Column(name = "speaker")
+	@Size(max = 3, message = "An event can have 3 speakers at most.")
 	private List<String> speakers = new ArrayList<>();
 
 	@ManyToOne
@@ -42,7 +61,7 @@ public class Event implements Serializable {
 
 	private LocalDateTime dateTime;
 
-	private String beamerCode;
+	private int beamerCode;
 
 	@Column(nullable = false)
 	private String beamerCheck;
@@ -50,6 +69,7 @@ public class Event implements Serializable {
 	@Column(nullable = false)
 	private BigDecimal price;
 
+	@Builder.Default
 	@ManyToMany(mappedBy = "favorites")
 	private Set<User> userFavorites = new HashSet<>();
 
