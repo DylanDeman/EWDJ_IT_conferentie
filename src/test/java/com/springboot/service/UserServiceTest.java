@@ -1,9 +1,11 @@
 package com.springboot.service;
 
 import com.springboot.domain.User;
-import com.springboot.repository.UserRepository;
-import com.springboot.service.impl.UserServiceImpl;
+
 import jakarta.persistence.EntityNotFoundException;
+import repository.UserRepository;
+import service.UserDetailsServiceImpl;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,18 +31,18 @@ class UserServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private UserServiceImpl userService;
+    private UserDetailsServiceImpl userService;
 
-    private User testUser;
+    private MyUser testUser;
 
     @BeforeEach
     void setUp() {
-        testUser = new User();
+        testUser = new MyUser();
         testUser.setId(1L);
         testUser.setUsername("testuser");
         testUser.setPassword("password");
         testUser.setEmail("test@example.com");
-        testUser.setRole(User.UserRole.USER);
+        testUser.setRole(MyUser.UserRole.USER);
     }
 
     @Test
@@ -48,14 +50,14 @@ class UserServiceTest {
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userRepository.save(any(MyUser.class))).thenReturn(testUser);
 
-        User createdUser = userService.createUser(testUser);
+        MyUser createdUser = userService.createUser(testUser);
 
         assertNotNull(createdUser);
         assertEquals("testuser", createdUser.getUsername());
         assertEquals("encodedPassword", createdUser.getPassword());
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).save(any(MyUser.class));
     }
 
     @Test
@@ -75,7 +77,7 @@ class UserServiceTest {
 
     @Test
     void updateUser_Success() {
-        User existingUser = new User();
+        MyUser existingUser = new MyUser();
         existingUser.setId(1L);
         existingUser.setUsername("existinguser");
         existingUser.setEmail("existing@example.com");
@@ -83,13 +85,13 @@ class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userRepository.save(any(MyUser.class))).thenReturn(testUser);
 
-        User updatedUser = userService.updateUser(1L, testUser);
+        MyUser updatedUser = userService.updateUser(1L, testUser);
 
         assertNotNull(updatedUser);
         assertEquals(1L, updatedUser.getId());
-        verify(userRepository).save(any(User.class));
+        verify(userRepository).save(any(MyUser.class));
     }
 
     @Test
@@ -132,7 +134,7 @@ class UserServiceTest {
         testUser.setAccountNonLocked(false);
         testUser.setFailedAttempt(3);
 
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userRepository.save(any(MyUser.class))).thenReturn(testUser);
 
         boolean unlocked = userService.unlockWhenTimeExpired(testUser);
 

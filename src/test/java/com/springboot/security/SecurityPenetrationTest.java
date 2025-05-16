@@ -1,7 +1,9 @@
 package com.springboot.security;
 
 import com.springboot.domain.User;
-import com.springboot.repository.UserRepository;
+
+import repository.UserRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,16 +30,16 @@ class SecurityPenetrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private User testUser;
+    private MyUser testUser;
 
     @BeforeEach
     void setUp() {
         userRepository.deleteAll();
-        testUser = new User();
+        testUser = new MyUser();
         testUser.setUsername("testuser");
         testUser.setPassword("password");
         testUser.setEmail("test@example.com");
-        testUser.setRole(User.UserRole.USER);
+        testUser.setRole(MyUser.UserRole.USER);
         testUser = userRepository.save(testUser);
     }
 

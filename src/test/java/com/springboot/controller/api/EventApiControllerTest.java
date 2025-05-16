@@ -1,7 +1,10 @@
 package com.springboot.controller.api;
 
 import com.springboot.domain.Event;
-import com.springboot.service.EventService;
+
+import api.EventApiController;
+import service.EventService;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;

@@ -1,8 +1,10 @@
 package com.springboot.security;
 
 import com.springboot.domain.User;
-import com.springboot.repository.UserRepository;
-import com.springboot.service.UserService;
+
+import repository.UserRepository;
+import service.UserService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,16 +34,16 @@ class CustomUserDetailsServiceTest {
     @InjectMocks
     private CustomUserDetailsService userDetailsService;
 
-    private User testUser;
+    private MyUser testUser;
 
     @BeforeEach
     void setUp() {
-        testUser = new User();
+        testUser = new MyUser();
         testUser.setId(1L);
         testUser.setUsername("testuser");
         testUser.setPassword("password");
         testUser.setEmail("test@example.com");
-        testUser.setRole(User.UserRole.USER);
+        testUser.setRole(MyUser.UserRole.USER);
         testUser.setAccountNonExpired(true);
         testUser.setAccountNonLocked(true);
         testUser.setCredentialsNonExpired(true);

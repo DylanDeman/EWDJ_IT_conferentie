@@ -64,13 +64,13 @@ public class Event implements Serializable {
 	private int beamerCode;
 
 	@Column(nullable = false)
-	private String beamerCheck;
+	private int beamerCheck;
 
 	@Column(nullable = false)
 	private BigDecimal price;
 
 	@Builder.Default
 	@ManyToMany(mappedBy = "favorites")
-	private Set<User> userFavorites = new HashSet<>();
+	private Set<MyUser> userFavorites = new HashSet<>();
 
 }
