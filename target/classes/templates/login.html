@@ -1,71 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="layout/base :: head">
-    <title th:text="#{login.title} + ' - ' + #{app.name}">Login</title>
+<head>
+    <meta charset="UTF-8">
+    <title>IT Conference 2025</title>
+    <link rel="stylesheet" th:href="@{/css/login.css}" />
 </head>
+
 <body>
-    <div th:replace="layout/base :: nav"></div>
-
-    <div class="container mt-4">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h1 class="card-title text-center mb-4" th:text="#{login.title}">Login</h1>
-
-                        <div th:if="${param.error}" class="alert alert-danger" th:text="#{login.error}">
-                            Invalid username or password.
-                        </div>
-                        <div th:if="${param.logout}" class="alert alert-success" th:text="#{login.logout}">
-                            You have been logged out.
-                        </div>
-
-                        <form th:action="@{/login}" method="post" class="needs-validation" novalidate>
-                            <div class="mb-3">
-                                <label for="username" class="form-label" th:text="#{login.username}">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" 
-                                       required autofocus>
-                                <div class="invalid-feedback" th:text="#{login.username.required}">
-                                    Please enter your username.
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="password" class="form-label" th:text="#{login.password}">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       required>
-                                <div class="invalid-feedback" th:text="#{login.password.required}">
-                                    Please enter your password.
-                                </div>
-                            </div>
-
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary" th:text="#{login.submit}">
-                                    Sign In
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+<div class="message" th:if="${message}" th:text="${message}"></div>
+<div class="form-container">
+    <h3 th:text="#{login.title}"/>
+    <form action="#" th:action="@{/login}" method="post" class="form">
+        <div class="form-group">
+            <div class="form-input">
+                <div class="label-container">
+                    <label for="username" th:text="#{login.username}">Username:</label><span class="required">*</span>
                 </div>
+                <input type="text" id="username" name="username" class="input-container">
             </div>
         </div>
-    </div>
-
-    <script th:inline="javascript">
-        // Form validation
-        (function () {
-            'use strict'
-            const forms = document.querySelectorAll('.needs-validation')
-            Array.prototype.slice.call(forms).forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
-    </script>
+        <div class="form-group">
+            <div class="form-input">
+                <div class="label-container">
+                    <label for="password" th:text="#{login.password}">Password:</label><span class="required">*</span>
+                </div>
+                <input type="password" id="password" name="password" class="input-container">
+            </div>
+        </div>
+        <div class="error-msg" th:if="${error}" th:text="${error}"></div>
+        <div class="btn-container">
+            <button class="btn" type="submit" th:text="#{login.button}">Log in</button>
+        </div>
+        <input type="hidden" name="_csrf" th:value="${_csrf.token}" />
+    </form>
+</div>
 </body>
-</html> 
+</html>

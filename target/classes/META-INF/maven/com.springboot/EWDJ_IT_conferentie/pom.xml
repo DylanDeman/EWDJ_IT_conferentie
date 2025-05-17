@@ -44,6 +44,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
+		<dependency>
+    		<groupId>org.thymeleaf.extras</groupId>
+   			 <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+   			 </dependency>
+
+
 
 		<!-- Database -->
 		<dependency>
@@ -98,6 +104,8 @@
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
 		</dependency>
+		
+
 
 		<!-- API Documentation -->
 		<dependency>

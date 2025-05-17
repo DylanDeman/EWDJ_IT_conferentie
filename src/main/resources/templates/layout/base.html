@@ -22,20 +22,31 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" th:href="@{/events}" th:text="#{nav.events}">Events</a>
+                    <!-- Show Events only if not authenticated -->
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link active" th:href="@{/events}" th:text="#{nav.events}">Events</a>
                     </li>
-                    <li class="nav-item">
+                    
+                    <!-- Show Rooms only if authenticated -->
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
                         <a class="nav-link" th:href="@{/rooms}" th:text="#{nav.rooms}">Rooms</a>
                     </li>
+
+                    <!-- User-specific links -->
                     <li class="nav-item" sec:authorize="hasRole('USER')">
                         <a class="nav-link" th:href="@{/user/favorites}" th:text="#{nav.favorites}">My Favorites</a>
                     </li>
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                        <a class="nav-link" th:href="@{/admin/events}" th:text="#{nav.manageEvents}">Manage Events</a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav">
+                    <!-- Show Login if not authenticated -->
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
                         <a class="nav-link" th:href="@{/login}" th:text="#{nav.login}">Login</a>
                     </li>
+
+                    <!-- Show Logout if authenticated -->
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <form th:action="@{/logout}" method="post" class="d-inline">
                             <button type="submit" class="btn btn-link nav-link" th:text="#{nav.logout}">Logout</button>
@@ -56,8 +67,33 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
-        <div th:replace="${content}">
-            <!-- Page content will be inserted here -->
+        <!-- Event Overzicht -->
+        <h2 class="mb-4" th:text="#{events.title}">Upcoming Events</h2>
+
+        <div class="row" th:each="event : ${events}">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${event.name}">Event Name</h5>
+                        <p class="card-text">
+                            <strong>Speakers:</strong>
+                            <span th:each="speaker, iterStat : ${event.speakers}" 
+                                  th:if="${iterStat.index < 3}"
+                                  th:text="${speaker.name} + (iterStat.index < 2 ? ', ' : '')">Speaker Names</span>
+                            <br>
+                            <strong>Room:</strong> <span th:text="${event.room.name}">Room Name</span><br>
+                            <strong>Date & Time:</strong> <span th:text="${#dates.format(event.dateTime, 'dd MMM yyyy HH:mm')}">Event Date</span>
+                        </p>
+                        <a class="btn btn-outline-primary" th:href="@{'/events/' + ${event.id}}" th:text="#{events.details}">View Details</a>
+                        
+                        <!-- Add to Favorites only if logged in with USER role -->
+                        <a class="btn btn-outline-secondary ms-2" 
+                           th:href="@{'/user/favorites/add/' + ${event.id}}" 
+                           sec:authorize="hasRole('USER')"
+                           th:text="#{events.addToFavorites}">Add to Favorites</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -66,4 +102,4 @@
     <!-- Custom JavaScript -->
     <script th:src="@{/js/main.js}"></script>
 </body>
-</html> 
+</html>

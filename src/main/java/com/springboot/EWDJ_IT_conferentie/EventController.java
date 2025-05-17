@@ -27,7 +27,7 @@ public class EventController {
 	@Autowired
 	private UserService userService;
 
-	@GetMapping
+	@GetMapping({ "", "/" })
 	public String listEvents(Model model, @AuthenticationPrincipal UserDetails userDetails) {
 		model.addAttribute("events", eventService.getAllEvents());
 		if (userDetails != null) {

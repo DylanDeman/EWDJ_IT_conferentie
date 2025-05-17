@@ -17,9 +17,21 @@
                         Join us for three days of cutting-edge technology, networking, and learning.
                     </p>
                     <div class="mt-4">
-                        <a th:href="@{/events}" class="btn btn-light btn-lg me-3" th:text="#{home.hero.browse}">
+                        <!-- Show Browse Events only to anonymous users -->
+                        <a th:href="@{/events}" class="btn btn-light btn-lg me-3" 
+                           sec:authorize="!isAuthenticated()" 
+                           th:text="#{home.hero.browse}">
                             Browse Events
                         </a>
+
+                        <!-- Show Add Event button only to ADMIN -->
+                        <a th:href="@{/events/new}" class="btn btn-warning btn-lg me-3" 
+                           sec:authorize="hasRole('ADMIN')" 
+                           th:text="#{home.hero.addEvent}">
+                            Add Event
+                        </a>
+
+                        <!-- Show View Rooms always -->
                         <a th:href="@{/rooms}" class="btn btn-outline-light btn-lg" th:text="#{home.hero.rooms}">
                             View Rooms
                         </a>
@@ -125,11 +137,13 @@
                         <p class="card-text" th:text="#{home.links.favorites.description}">
                             Keep track of your favorite events and never miss a session.
                         </p>
+                        <!-- Favorites button only for logged in USER -->
                         <a th:href="@{/user/favorites}" class="btn btn-outline-primary" 
                            th:text="#{home.links.favorites.button}"
                            sec:authorize="hasRole('USER')">
                             View Favorites
                         </a>
+                        <!-- Login button if not authenticated -->
                         <a th:href="@{/login}" class="btn btn-outline-primary" 
                            th:text="#{home.links.favorites.login}"
                            sec:authorize="!isAuthenticated()">
@@ -141,4 +155,4 @@
         </div>
     </div>
 </body>
-</html> 
+</html>

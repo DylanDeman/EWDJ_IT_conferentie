@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
 import service.RoomService;
 
 @Controller
-@RequestMapping("/admin/rooms")
+@RequestMapping("/rooms") // <-- Changed here to /rooms
 public class RoomController {
 
 	private final RoomService roomService;
@@ -52,7 +52,7 @@ public class RoomController {
 			String message = messageSource.getMessage("room.added",
 					new Object[] { savedRoom.getName(), savedRoom.getCapacity() }, LocaleContextHolder.getLocale());
 			redirectAttributes.addFlashAttribute("message", message);
-			return "redirect:/admin/rooms";
+			return "redirect:/rooms";
 		} catch (Exception e) {
 			result.rejectValue("", "", e.getMessage());
 			return "rooms/form";
@@ -77,7 +77,7 @@ public class RoomController {
 		try {
 			roomService.updateRoom(id, room);
 			redirectAttributes.addFlashAttribute("message", "Room updated successfully");
-			return "redirect:/admin/rooms";
+			return "redirect:/rooms";
 		} catch (Exception e) {
 			result.rejectValue("", "", e.getMessage());
 			return "rooms/form";
@@ -88,6 +88,6 @@ public class RoomController {
 	public String deleteRoom(@PathVariable Long id, RedirectAttributes redirectAttributes) {
 		roomService.deleteRoom(id);
 		redirectAttributes.addFlashAttribute("message", "Room deleted successfully");
-		return "redirect:/admin/rooms";
+		return "redirect:/rooms";
 	}
 }
