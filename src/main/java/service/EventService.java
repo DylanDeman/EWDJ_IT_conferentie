@@ -42,4 +42,6 @@ public interface EventService {
 	boolean isRoomAvailable(LocalDateTime dateTime, Long roomId);
 
 	boolean isEventNameUniqueOnDate(LocalDateTime date, String name);
+
+	List<Event> getFilteredEvents(String dateStr, Long roomId, String sortBy);
 }

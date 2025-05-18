@@ -18,6 +18,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Data
@@ -40,6 +41,7 @@ public class Room implements Serializable {
 	@Column(nullable = false)
 	private int capacity;
 
+	@ToString.Exclude
 	@Builder.Default
 	@OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
 	private List<Event> events = new ArrayList<>();

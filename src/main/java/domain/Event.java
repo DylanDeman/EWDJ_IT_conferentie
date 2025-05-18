@@ -4,9 +4,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -16,7 +14,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
@@ -27,6 +24,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Data
@@ -53,8 +51,9 @@ public class Event implements Serializable {
 	@CollectionTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"))
 	@Column(name = "speaker")
 	@Size(max = 3, message = "An event can have 3 speakers at most.")
-	private List<String> speakers = new ArrayList<>();
+	private List<Speaker> speakers = new ArrayList<>();
 
+	@ToString.Exclude
 	@ManyToOne
 	@JoinColumn(name = "room_id")
 	private Room room;
@@ -68,9 +67,5 @@ public class Event implements Serializable {
 
 	@Column(nullable = false)
 	private BigDecimal price;
-
-	@Builder.Default
-	@ManyToMany(mappedBy = "favorites")
-	private Set<MyUser> userFavorites = new HashSet<>();
 
 }

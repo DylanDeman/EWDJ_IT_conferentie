@@ -1,8 +1,13 @@
 package service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,8 +27,10 @@ public class EventServiceImpl implements EventService {
 
 	@Value("${app.favorites.limit:5}")
 	private int favoritesLimit;
+
 	@Autowired
 	private EventRepository eventRepository;
+
 	@Autowired
 	private UserRepository userRepository;
 
@@ -60,7 +67,6 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public List<Event> getUserFavorites(String username) {
 		MyUser user = userRepository.findByUsername(username);
-
 		return user.getFavorites().stream().toList();
 	}
 
@@ -68,7 +74,6 @@ public class EventServiceImpl implements EventService {
 	@Transactional(readOnly = true)
 	public boolean hasReachedFavoriteLimit(String username) {
 		MyUser user = userRepository.findByUsername(username);
-
 		return user.getFavorites().size() >= favoritesLimit;
 	}
 
@@ -101,7 +106,6 @@ public class EventServiceImpl implements EventService {
 				.orElseThrow(() -> new EntityNotFoundException("Event not found with ID: " + eventId));
 
 		MyUser user = userRepository.findByUsername(username);
-
 		user.getFavorites().remove(event);
 		userRepository.save(user);
 	}
@@ -129,10 +133,12 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public Event updateEvent(Long id, Event event) {
-		Event existingEvent = eventRepository.findById(id)
-				.orElseThrow(() -> new EntityNotFoundException("Event not found"));
+		if (!eventRepository.existsById(id)) {
+			throw new EntityNotFoundException("Event not found");
+		}
 
-		validateEvent(event);
+		log.info("Updating event ID {}: {}", id, event);
+		validateEventUpdate(id, event);
 		event.setId(id);
 		return eventRepository.save(event);
 	}
@@ -164,5 +170,64 @@ public class EventServiceImpl implements EventService {
 		if (!isEventNameUniqueOnDate(event.getDateTime(), event.getName())) {
 			throw new IllegalArgumentException("Event name must be unique on the same date");
 		}
+	}
+
+	private void validateEventUpdate(Long eventId, Event event) {
+		if (event.getBeamerCheck() != event.getBeamerCode() % 97) {
+			throw new IllegalArgumentException("Invalid beamer check code");
+		}
+
+		Event existing = eventRepository.findById(eventId)
+				.orElseThrow(() -> new EntityNotFoundException("Event not found"));
+
+		boolean timeOrRoomChanged = !existing.getDateTime().equals(event.getDateTime())
+				|| existing.getRoom().getId() != event.getRoom().getId();
+
+		if (timeOrRoomChanged && !isRoomAvailable(event.getDateTime(), event.getRoom().getId())) {
+			throw new IllegalArgumentException("Room is not available at the specified time");
+		}
+
+		boolean nameChanged = !existing.getName().equalsIgnoreCase(event.getName());
+
+		if (nameChanged && !isEventNameUniqueOnDate(event.getDateTime(), event.getName())) {
+			throw new IllegalArgumentException("Event name must be unique on the same date");
+		}
+	}
+
+	@Override
+	public List<Event> getFilteredEvents(String dateStr, Long roomId, String sortBy) {
+		List<Event> filteredEvents = new ArrayList<>(getAllEvents());
+
+		if (dateStr != null && !dateStr.isEmpty()) {
+			try {
+				LocalDate filterDate = LocalDate.parse(dateStr);
+				filteredEvents = filteredEvents.stream().filter(event -> {
+					LocalDate eventDate = event.getDateTime().toLocalDate();
+					return eventDate.equals(filterDate);
+				}).collect(Collectors.toList());
+			} catch (DateTimeParseException e) {
+				log.warn("Invalid date format for filtering: {}", dateStr);
+			}
+		}
+
+		if (roomId != null) {
+			filteredEvents = filteredEvents.stream()
+					.filter(event -> Long.valueOf(event.getRoom().getId()).equals(roomId)).collect(Collectors.toList());
+		}
+
+		switch (sortBy.toLowerCase()) {
+		case "name":
+			filteredEvents.sort(Comparator.comparing(Event::getName));
+			break;
+		case "price":
+			filteredEvents.sort(Comparator.comparing(Event::getPrice));
+			break;
+		case "datetime":
+		default:
+			filteredEvents.sort(Comparator.comparing(Event::getDateTime));
+			break;
+		}
+
+		return filteredEvents;
 	}
 }

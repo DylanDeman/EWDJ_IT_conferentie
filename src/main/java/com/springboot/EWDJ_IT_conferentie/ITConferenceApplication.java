@@ -16,6 +16,8 @@ import service.EventService;
 import service.EventServiceImpl;
 import service.RoomService;
 import service.RoomServiceImpl;
+import service.SpeakerService;
+import service.SpeakerServiceImpl;
 import service.UserDetailsServiceImpl;
 import service.UserService;
 import service.UserServiceImpl;
@@ -64,6 +66,11 @@ public class ITConferenceApplication implements WebMvcConfigurer {
 	@Bean
 	EventService EventServiceImpl() {
 		return new EventServiceImpl();
+	}
+
+	@Bean
+	SpeakerService SpeakerServiceImpl() {
+		return new SpeakerServiceImpl();
 	}
 
 	/*

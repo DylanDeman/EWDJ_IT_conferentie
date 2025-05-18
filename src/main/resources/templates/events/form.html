@@ -1,169 +1,128 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="layout/base :: head">
-    <title th:text="${event.id == null ? #messages.msg('event.create.title') : #messages.msg('event.edit.title')} + ' - ' + #{app.name}">
-        Event Form
+<head th:replace="~{layout/base :: head}">
+    <title>
+        <span th:if="${event.id == null}" th:text="#{event.create.title} + ' - ' + #{app.name}">Create Event - App</span>
+        <span th:unless="${event.id == null}" th:text="#{event.edit.title} + ' - ' + #{app.name}">Edit Event - App</span>
     </title>
 </head>
 <body>
-    <div th:replace="layout/base :: nav"></div>
+    <div th:replace="~{layout/base :: nav}"></div>
 
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card">
+                <div class="card shadow-sm">
                     <div class="card-body">
-                        <h1 class="card-title text-center mb-4" 
-                            th:text="${event.id == null ? #messages.msg('event.create.title') : #messages.msg('event.edit.title')}">
-                            Create/Edit Event
+                        <h1 class="card-title text-center mb-4">
+                            <span th:if="${event.id == null}" th:text="#{event.create.title}">Create Event</span>
+                            <span th:unless="${event.id == null}" th:text="#{event.edit.title}">Edit Event</span>
                         </h1>
 
-                        <form th:action="@{${event.id == null ? '/events' : '/events/' + event.id}}" 
-                              th:object="${event}" method="post" class="needs-validation" novalidate>
-                            
+                        <th:block th:with="actionUrl=${event.id == null} ? @{/events} : @{/events/{id}(id=${event.id})}">
+  <form th:action="${actionUrl}" th:object="${event}" method="post">
+<input type="hidden" name="_method" value="put" th:if="${event.id != null}" />
+
+
+                            <!-- CSRF Token -->
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
                             <div class="mb-3">
                                 <label for="name" class="form-label" th:text="#{event.name}">Name</label>
                                 <input type="text" class="form-control" id="name" th:field="*{name}" required
-                                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" 
-                                     th:errors="*{name}">Name error</div>
+                                       th:classappend="${#fields.hasErrors('name')} ? ' is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Name error</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="description" class="form-label" th:text="#{event.description}">Description</label>
-                                <textarea class="form-control" id="description" th:field="*{description}" 
-                                          rows="3" required
-                                          th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"></textarea>
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" 
-                                     th:errors="*{description}">Description error</div>
+                                <textarea class="form-control" id="description" th:field="*{description}" rows="3" required
+                                          th:classappend="${#fields.hasErrors('description')} ? ' is-invalid'"></textarea>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Description error</div>
                             </div>
 
                             <div class="mb-3">
-                                <label for="dateTime" class="form-label" th:text="#{event.datetime}">Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="dateTime" 
-                                       th:field="*{dateTime}" required
-                                       th:classappend="${#fields.hasErrors('dateTime')} ? 'is-invalid'">
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('dateTime')}" 
-                                     th:errors="*{dateTime}">Date & Time error</div>
+                                <label for="dateTime" class="form-label" th:text="#{event.datetime}">Date and Time</label>
+                                <input type="datetime-local" class="form-control" id="dateTime" th:field="*{dateTime}" required
+                                       th:classappend="${#fields.hasErrors('dateTime')} ? ' is-invalid' : ''" />
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('dateTime')}" th:errors="*{dateTime}">Date and Time error</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="room" class="form-label" th:text="#{event.room}">Room</label>
                                 <select class="form-select" id="room" th:field="*{room}" required
-                                        th:classappend="${#fields.hasErrors('room')} ? 'is-invalid'">
-                                    <option value="">Select a room</option>
+                                        th:classappend="${#fields.hasErrors('room')} ? ' is-invalid'">
+                                    <option th:value="" th:text="#{event.room.select}">Select a room</option>
                                     <option th:each="room : ${rooms}" 
                                             th:value="${room.id}" 
-                                            th:text="${room.name + ' (' + room.capacity + ' ' + #messages.msg('event.capacity.seats') + ')'}">
-                                        Room
+                                            th:text="${room.name + ' (' + room.capacity + ' ' + #messages.msg('event.capacity.seats') + ')'}"
+                                            th:selected="${room.id == event.room?.id}">
                                     </option>
                                 </select>
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('room')}" 
-                                     th:errors="*{room}">Room error</div>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('room')}" th:errors="*{room}">Room error</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="price" class="form-label" th:text="#{event.price}">Price</label>
                                 <div class="input-group">
                                     <span class="input-group-text">€</span>
-                                    <input type="number" class="form-control" id="price" th:field="*{price}" 
-                                           step="0.01" min="0" required
-                                           th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'">
+                                    <input type="number" class="form-control" id="price" th:field="*{price}" step="0.01" min="0" required
+                                           th:classappend="${#fields.hasErrors('price')} ? ' is-invalid'">
                                 </div>
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" 
-                                     th:errors="*{price}">Price error</div>
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" th:errors="*{price}">Price error</div>
                             </div>
 
                             <div class="mb-3">
                                 <label for="beamerCode" class="form-label" th:text="#{event.beamer.code}">Beamer Code</label>
-                                <input type="text" class="form-control" id="beamerCode" th:field="*{beamerCode}" 
-                                       required
-                                       th:classappend="${#fields.hasErrors('beamerCode')} ? 'is-invalid'">
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('beamerCode')}" 
-                                     th:errors="*{beamerCode}">Beamer Code error</div>
+                                <input type="text" class="form-control" id="beamerCode" th:field="*{beamerCode}" required
+                                       th:classappend="${#fields.hasErrors('beamerCode')} ? ' is-invalid'">
+                                <div class="invalid-feedback" th:if="${#fields.hasErrors('beamerCode')}" th:errors="*{beamerCode}">Beamer Code error</div>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label" th:text="#{event.speakers}">Speakers</label>
-                                <div th:each="speaker, stat : *{speakers}" class="input-group mb-2">
-                                    <input type="text" class="form-control" th:field="*{speakers[__${stat.index}__]}" 
-                                           th:placeholder="#{event.speaker.placeholder}"
-                                           th:classappend="${#fields.hasErrors('speakers[' + stat.index + ']')} ? 'is-invalid'">
-                                    <button type="button" class="btn btn-outline-danger" 
-                                            th:onclick="'removeSpeaker(' + ${stat.index} + ')'"
-                                            th:if="${stat.index > 0}">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('speakers')}" 
-                                     th:errors="*{speakers}">Speakers error</div>
-                                <button type="button" class="btn btn-outline-primary" onclick="addSpeaker()">
-                                    <i class="fas fa-plus"></i> <span th:text="#{event.speaker.add}">Add Speaker</span>
-                                </button>
-                            </div>
+                           <div class="mb-3">
+    <label class="form-label" th:text="#{event.speakers}">Speakers</label>
+    <div id="speakers-container">
+        <div th:each="speaker, stat : *{speakers}" class="input-group mb-2">
+            <select class="form-select"
+                    th:field="*{speakers[__${stat.index}__]}"
+                    th:classappend="${#fields.hasErrors('speakers[' + stat.index + ']')} ? ' is-invalid'">
+                <option value="" th:text="#{event.speaker.select}">Select a speaker</option>
+                <option th:each="sp : ${allSpeakers}"
+                        th:value="${sp}"
+                        th:text="${sp.name}"
+                        th:selected="${sp.id == speaker?.id}">
+                </option>
+            </select>
+            <button type="submit" name="action" 
+                    th:value="'removeSpeaker_' + ${stat.index}" 
+                    class="btn btn-outline-danger" 
+                    title="Remove Speaker">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <button type="submit" name="action" value="addSpeaker" class="btn btn-outline-primary" title="Add Speaker"
+            th:disabled="${speakers.size() >= 3}">
+        <i class="fas fa-plus"></i> <span th:text="#{event.speaker.add}">Add Speaker</span>
+    </button>
+    <div class="invalid-feedback" th:if="${#fields.hasErrors('speakers')}" th:errors="*{speakers}">Speakers error</div>
+</div>
 
-                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <a th:href="@{/events}" class="btn btn-secondary me-md-2" 
-                                   th:text="#{event.cancel.button}">Cancel</a>
-                                <button type="submit" class="btn btn-primary" 
-                                        th:text="${event.id == null ? #messages.msg('event.create.button') : #messages.msg('event.update.button')}">
-                                    Create/Update Event
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <a th:href="@{/events}" class="btn btn-secondary me-md-2" th:text="#{event.cancel.button}">Cancel</a>
+                                <button type="submit" class="btn btn-primary">
+                                    <span th:if="${event.id == null}" th:text="#{event.create.button}">Create Event</span>
+                                    <span th:unless="${event.id == null}" th:text="#{event.update.button}">Update Event</span>
                                 </button>
                             </div>
                         </form>
+                        </th:block>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script th:inline="javascript">
-        function addSpeaker() {
-            const speakersContainer = document.querySelector('.mb-3:last-of-type');
-            const speakerInputs = speakersContainer.querySelectorAll('.input-group');
-            const newIndex = speakerInputs.length;
-            
-            const newInput = document.createElement('div');
-            newInput.className = 'input-group mb-2';
-            newInput.innerHTML = `
-                <input type="text" class="form-control" name="speakers[${newIndex}]" 
-                       placeholder="[[#{event.speaker.placeholder}]]">
-                <button type="button" class="btn btn-outline-danger" onclick="removeSpeaker(${newIndex})">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
-            speakersContainer.insertBefore(newInput, speakersContainer.lastElementChild);
-        }
-
-        function removeSpeaker(index) {
-            const speakersContainer = document.querySelector('.mb-3:last-of-type');
-            const speakerInputs = speakersContainer.querySelectorAll('.input-group');
-            speakerInputs[index].remove();
-            
-            // Renumber remaining inputs
-            speakerInputs.forEach((input, i) => {
-                if (i > index) {
-                    input.querySelector('input').name = `speakers[${i-1}]`;
-                    input.querySelector('button').onclick = () => removeSpeaker(i-1);
-                }
-            });
-        }
-
-        // Form validation
-        (function () {
-            'use strict'
-            const forms = document.querySelectorAll('.needs-validation')
-            Array.prototype.slice.call(forms).forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
-    </script>
 </body>
-</html> 
+</html>
