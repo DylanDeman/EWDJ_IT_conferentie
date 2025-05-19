@@ -6,14 +6,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Size;
@@ -46,10 +46,8 @@ public class Event implements Serializable {
 
 	private String description;
 
-	@ElementCollection
-	@Builder.Default
-	@CollectionTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"))
-	@Column(name = "speaker")
+	@ManyToMany
+	@JoinTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"), inverseJoinColumns = @JoinColumn(name = "speaker_id"))
 	@Size(max = 3, message = "An event can have 3 speakers at most.")
 	private List<Speaker> speakers = new ArrayList<>();
 
@@ -58,6 +56,7 @@ public class Event implements Serializable {
 	@JoinColumn(name = "room_id")
 	private Room room;
 
+	@Column(name = "date_time")
 	private LocalDateTime dateTime;
 
 	private int beamerCode;

@@ -57,18 +57,18 @@ public class InitDataConfig implements CommandLineRunner {
 		roomRepository.saveAll(List.of(roomA, roomB, roomC, roomD, roomE));
 
 		// Create speakers
-		Speaker aliceJohnson = Speaker.builder().speakerName("Alice Johnson").build();
-		Speaker bobSmith = Speaker.builder().speakerName("Bob Smith").build();
-		Speaker charlieBaker = Speaker.builder().speakerName("Charlie Baker").build();
-		Speaker carolWhite = Speaker.builder().speakerName("Carol White").build();
-		Speaker davidGreen = Speaker.builder().speakerName("David Green").build();
-		Speaker erinLee = Speaker.builder().speakerName("Erin Lee").build();
-		Speaker frankNovak = Speaker.builder().speakerName("Frank Novak").build();
-		Speaker graceKim = Speaker.builder().speakerName("Grace Kim").build();
-		Speaker harryStone = Speaker.builder().speakerName("Harry Stone").build();
-		Speaker ireneWoods = Speaker.builder().speakerName("Irene Woods").build();
-		Speaker jamesTan = Speaker.builder().speakerName("James Tan").build();
-		Speaker kellyZhang = Speaker.builder().speakerName("Kelly Zhang").build();
+		Speaker aliceJohnson = Speaker.builder().name("Alice Johnson").build();
+		Speaker bobSmith = Speaker.builder().name("Bob Smith").build();
+		Speaker charlieBaker = Speaker.builder().name("Charlie Baker").build();
+		Speaker carolWhite = Speaker.builder().name("Carol White").build();
+		Speaker davidGreen = Speaker.builder().name("David Green").build();
+		Speaker erinLee = Speaker.builder().name("Erin Lee").build();
+		Speaker frankNovak = Speaker.builder().name("Frank Novak").build();
+		Speaker graceKim = Speaker.builder().name("Grace Kim").build();
+		Speaker harryStone = Speaker.builder().name("Harry Stone").build();
+		Speaker ireneWoods = Speaker.builder().name("Irene Woods").build();
+		Speaker jamesTan = Speaker.builder().name("James Tan").build();
+		Speaker kellyZhang = Speaker.builder().name("Kelly Zhang").build();
 
 		speakerRepository.saveAll(List.of(aliceJohnson, bobSmith, charlieBaker, carolWhite, davidGreen, erinLee,
 				frankNovak, graceKim, harryStone, ireneWoods, jamesTan, kellyZhang));

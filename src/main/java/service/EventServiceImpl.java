@@ -13,12 +13,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.BindingResult;
 
 import domain.Event;
 import domain.MyUser;
+import domain.Room;
+import domain.Speaker;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import repository.EventRepository;
+import repository.RoomRepository;
+import repository.SpeakerRepository;
 import repository.UserRepository;
 
 @Service
@@ -33,6 +38,12 @@ public class EventServiceImpl implements EventService {
 
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private RoomRepository roomRepository;
+
+	@Autowired
+	private SpeakerRepository speakerRepository;
 
 	@Override
 	public List<Event> findAll() {
@@ -127,7 +138,7 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public Event createEvent(Event event) {
-		validateEvent(event);
+		validateEventThrow(event);
 		return eventRepository.save(event);
 	}
 
@@ -138,7 +149,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		log.info("Updating event ID {}: {}", id, event);
-		validateEventUpdate(id, event);
+		validateEventUpdateThrow(id, event);
 		event.setId(id);
 		return eventRepository.save(event);
 	}
@@ -158,7 +169,8 @@ public class EventServiceImpl implements EventService {
 		return !eventRepository.existsByNameAndDateTime(name, date);
 	}
 
-	private void validateEvent(Event event) {
+	// Validation that throws exceptions (used internally)
+	private void validateEventThrow(Event event) {
 		if (event.getBeamerCheck() != event.getBeamerCode() % 97) {
 			throw new IllegalArgumentException("Invalid beamer check code");
 		}
@@ -172,7 +184,7 @@ public class EventServiceImpl implements EventService {
 		}
 	}
 
-	private void validateEventUpdate(Long eventId, Event event) {
+	private void validateEventUpdateThrow(Long eventId, Event event) {
 		if (event.getBeamerCheck() != event.getBeamerCode() % 97) {
 			throw new IllegalArgumentException("Invalid beamer check code");
 		}
@@ -192,6 +204,65 @@ public class EventServiceImpl implements EventService {
 		if (nameChanged && !isEventNameUniqueOnDate(event.getDateTime(), event.getName())) {
 			throw new IllegalArgumentException("Event name must be unique on the same date");
 		}
+	}
+
+	/**
+	 * New: Validate event but add errors to BindingResult instead of throwing
+	 * exceptions.
+	 */
+	@Override
+	public void validateEvent(Event event, BindingResult result) {
+		if (event == null) {
+			result.reject("event", "Event must not be null");
+			return;
+		}
+
+		if (event.getBeamerCheck() != event.getBeamerCode() % 97) {
+			result.rejectValue("beamerCheck", "error.event", "Invalid beamer check code");
+		}
+
+		if (event.getRoom() == null) {
+			result.rejectValue("room", "error.event", "Room is required");
+		} else if (!isRoomAvailable(event.getDateTime(), event.getRoom().getId())) {
+			result.rejectValue("room", "error.event", "Room is not available at the specified time");
+		}
+
+		if (event.getName() == null || event.getName().isBlank()) {
+			result.rejectValue("name", "error.event", "Event name is required");
+		} else if (!isEventNameUniqueOnDate(event.getDateTime(), event.getName())) {
+			result.rejectValue("name", "error.event", "Event name must be unique on the same date");
+		}
+	}
+
+	/**
+	 * New: Setup method to prepare Event for form add or edit. If id is null,
+	 * returns new Event. If id present, loads from DB or throws if not found.
+	 */
+	@Override
+	public Event setupAddEventWithDefaults(Long eventId, Event event) {
+		if (event != null) {
+			return event;
+		}
+		if (eventId != null) {
+			return eventRepository.findById(eventId).orElseThrow(() -> new EntityNotFoundException("Event not found"));
+		}
+		return new Event(); // default new event
+	}
+
+	/**
+	 * New: Setup method to fetch all rooms for the form.
+	 */
+	@Override
+	public List<Room> setupRooms() {
+		return roomRepository.findAll();
+	}
+
+	/**
+	 * New: Setup method to fetch all speakers for the form.
+	 */
+	@Override
+	public List<Speaker> setupSpeakers() {
+		return speakerRepository.findAll();
 	}
 
 	@Override

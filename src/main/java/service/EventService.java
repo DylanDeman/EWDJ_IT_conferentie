@@ -4,7 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.validation.BindingResult;
+
 import domain.Event;
+import domain.Room;
+import domain.Speaker;
 
 public interface EventService {
 	List<Event> findAll();
@@ -44,4 +48,12 @@ public interface EventService {
 	boolean isEventNameUniqueOnDate(LocalDateTime date, String name);
 
 	List<Event> getFilteredEvents(String dateStr, Long roomId, String sortBy);
+
+	void validateEvent(Event event, BindingResult result);
+
+	Event setupAddEventWithDefaults(Long eventId, Event event);
+
+	List<Room> setupRooms();
+
+	List<Speaker> setupSpeakers();
 }

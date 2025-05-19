@@ -22,19 +22,20 @@
         </div>
     </div>
 
-    <!-- Filters -->
+    <!-- Filters with auto-submit using HTML attributes - matched to controller parameters -->
     <div class="card mb-4">
         <div class="card-body">
             <form id="filterForm" th:action="@{/events}" method="get" class="row g-3">
                 <div class="col-md-4">
                     <label for="date" class="form-label" th:text="#{event.filter.date}">Date</label>
-                    <input type="date" class="form-control filter-input" id="date" name="date"
+                    <input type="date" class="form-control" id="date" name="date"
                            th:value="${param.date}"
-                           th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}">
+                           th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                           onchange="this.form.submit();">
                 </div>
                 <div class="col-md-4">
                     <label for="room" class="form-label" th:text="#{event.filter.room}">Room</label>
-                    <select class="form-select filter-input" id="room" name="room">
+                    <select class="form-select" id="room" name="room" onchange="this.form.submit();">
                         <option value="">All Rooms</option>
                         <option th:each="room : ${rooms}"
                                 th:value="${room.id}"
@@ -46,7 +47,7 @@
                 </div>
                 <div class="col-md-4">
                     <label for="sort" class="form-label" th:text="#{event.filter.sort}">Sort By</label>
-                    <select class="form-select filter-input" id="sort" name="sort">
+                    <select class="form-select" id="sort" name="sort" onchange="this.form.submit();">
                         <option value="datetime" th:selected="${param.sort == null or param.sort[0] == 'datetime'}"
                                 th:text="#{event.sort.datetime}">Date & Time</option>
                         <option value="name" th:selected="${param.sort != null and param.sort[0] == 'name'}"
@@ -57,6 +58,9 @@
                 </div>
                 <div class="col-12">
                     <a th:href="@{/events}" class="btn btn-secondary" th:text="#{event.filter.clear}">Clear Filters</a>
+                    <noscript>
+                        <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    </noscript>
                 </div>
             </form>
         </div>
@@ -75,7 +79,7 @@
                         <strong th:text="#{event.speakers}">Speakers:</strong>
                         <span th:each="speaker, iterStat : ${event.speakers}"
                               th:if="${iterStat.index < 3}"
-                              th:text="${speaker + (iterStat.last || iterStat.index == 2 ? '' : ', ')}">
+                              th:text="${speaker.name + (iterStat.last || iterStat.index == 2 ? '' : ', ')}">
                             Speaker
                         </span>
                     </p>
@@ -113,7 +117,7 @@
                         <!-- Favorites (optional) -->
                         <div sec:authorize="hasRole('USER')">
                             <form th:if="${userFavorites == null || !#sets.contains(userFavorites, event)}"
-                                  th:action="@{/user/favorites/add/{id}(id=${event.id})}"
+                                  th:action="@{/events/{id}/favorite(id=${event.id})}"
                                   method="post" style="display: inline;">
                                 <button type="submit" class="btn btn-outline-primary"
                                         th:text="#{favorite.add.button}">
@@ -121,7 +125,7 @@
                                 </button>
                             </form>
                             <form th:if="${userFavorites != null && #sets.contains(userFavorites, event)}"
-                                  th:action="@{/user/favorites/remove/{id}(id=${event.id})}"
+                                  th:action="@{/events/{id}/unfavorite(id=${event.id})}"
                                   method="post" style="display: inline;">
                                 <button type="submit" class="btn btn-primary"
                                         th:text="#{favorite.remove.button}">
@@ -140,19 +144,5 @@
         <p class="lead" th:text="#{event.list.empty}">No events found matching your criteria.</p>
     </div>
 </div>
-
-<!-- Auto-submit filters -->
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const filterInputs = document.querySelectorAll(".filter-input");
-        const form = document.getElementById("filterForm");
-
-        filterInputs.forEach(input => {
-            input.addEventListener("change", function () {
-                form.submit();
-            });
-        });
-    });
-</script>
 </body>
 </html>
