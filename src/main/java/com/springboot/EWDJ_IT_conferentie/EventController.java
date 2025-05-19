@@ -14,12 +14,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import domain.Event;
+import domain.MyUser;
 import domain.Room;
 import domain.Speaker;
 import jakarta.validation.Valid;
@@ -66,17 +66,30 @@ public class EventController {
 
 	@GetMapping("/{id}")
 	public String viewEvent(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
-		Event event = eventService.getEventById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Invalid event id: " + id));
+		try {
+			Event event = eventService.getEventById(id)
+					.orElseThrow(() -> new IllegalArgumentException("Invalid event id: " + id));
 
-		model.addAttribute("event", event);
+			model.addAttribute("event", event);
 
-		if (userDetails != null) {
-			model.addAttribute("isAdmin", isAdmin(userDetails.getUsername()));
-			model.addAttribute("canAddToFavorites", !eventService.hasReachedFavoriteLimit(userDetails.getUsername()));
+			if (userDetails != null) {
+				MyUser user = userService.findByUsername(userDetails.getUsername());
+				model.addAttribute("isAdmin", user.getRole() == Role.ADMIN);
+				model.addAttribute("canAddToFavorites",
+						!eventService.hasReachedFavoriteLimit(userDetails.getUsername()));
+				model.addAttribute("isFavorite", user.getFavorites().stream().anyMatch(e -> e.getId().equals(id)));
+			} else {
+				model.addAttribute("isFavorite", false);
+			}
+
+			return "events/detail";
+		} catch (IllegalArgumentException e) {
+			model.addAttribute("error", e.getMessage());
+			return "error";
+		} catch (Exception e) {
+			model.addAttribute("error", "An error occurred while retrieving the event details");
+			return "error";
 		}
-
-		return "events/view";
 	}
 
 	// ADD EVENT
@@ -139,7 +152,8 @@ public class EventController {
 		return "events/form";
 	}
 
-	@PutMapping("/{id}/edit")
+	@PreAuthorize("hasRole('ADMIN')")
+	@PostMapping("/{id}/edit")
 	public String editEvent(@PathVariable Long id, @Valid @ModelAttribute Event event, BindingResult result,
 			@RequestParam Long roomId, @RequestParam(required = false) Long speaker1Id,
 			@RequestParam(required = false) Long speaker2Id, @RequestParam(required = false) Long speaker3Id,
@@ -184,44 +198,13 @@ public class EventController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/{id}/delete")
 	public String deleteEvent(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-		eventService.deleteEvent(id);
-		redirectAttributes.addFlashAttribute("message", "Event deleted successfully");
-		return "redirect:/events";
-	}
-
-	// FAVORITES
-	@PostMapping("/{id}/favorite")
-	public String addToFavorites(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails,
-			RedirectAttributes redirectAttributes) {
-
-		if (userDetails == null) {
-			redirectAttributes.addFlashAttribute("error", "You must be logged in to add favorites.");
-			return "redirect:/login";
-		}
-
 		try {
-			eventService.addToFavorites(id, userDetails.getUsername());
-			redirectAttributes.addFlashAttribute("message", "Event added to favorites");
+			eventService.deleteEvent(id);
+			redirectAttributes.addFlashAttribute("message", "Event deleted successfully");
 		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", e.getMessage());
+			redirectAttributes.addFlashAttribute("error", "Error deleting event: " + e.getMessage());
 		}
-
-		return "redirect:/events/" + id;
-	}
-
-	@PostMapping("/{id}/unfavorite")
-	public String removeFromFavorites(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails,
-			RedirectAttributes redirectAttributes) {
-
-		if (userDetails == null) {
-			redirectAttributes.addFlashAttribute("error", "You must be logged in to remove favorites.");
-			return "redirect:/login";
-		}
-
-		eventService.removeFromFavorites(id, userDetails.getUsername());
-		redirectAttributes.addFlashAttribute("message", "Event removed from favorites");
-
-		return "redirect:/events/" + id;
+		return "redirect:/events";
 	}
 
 	// UTILS

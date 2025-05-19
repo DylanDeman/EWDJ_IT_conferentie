@@ -39,7 +39,7 @@ public class SecurityConfig {
 
 				.anyRequest().authenticated())
 				.formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/events", true).permitAll())
-				.logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout").permitAll())
+				.logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/").permitAll())
 				.exceptionHandling(configurer -> configurer.accessDeniedPage("/accessdenied"));
 
 		return http.build();

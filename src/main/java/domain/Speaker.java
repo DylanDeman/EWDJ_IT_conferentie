@@ -14,9 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 @Entity
@@ -25,21 +23,17 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = "id")
-@Getter
-@Setter
 @Table(name = "speakers")
-
-@ToString
 public class Speaker implements Serializable {
-
 	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	private String name;
 
+	@ToString.Exclude
 	@ManyToMany(mappedBy = "speakers")
 	private List<Event> events = new ArrayList<>();
-
 }

@@ -11,7 +11,7 @@ import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.i18n.CookieLocaleResolver;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import service.EventService;
 import service.EventServiceImpl;
@@ -43,9 +43,8 @@ public class ITConferenceApplication implements WebMvcConfigurer {
 	/* LOCALE */
 	@Bean
 	LocaleResolver localeResolver() {
-		CookieLocaleResolver slr = new CookieLocaleResolver();
-		// slr.setDefaultLocale(Locale.ENGLISH);
-		slr.setDefaultLocale(new Locale("nl"));
+		SessionLocaleResolver slr = new SessionLocaleResolver();
+		slr.setDefaultLocale(new Locale("en", "BE"));// or any Euro zone locale
 		return slr;
 	}
 

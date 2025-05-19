@@ -21,9 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 @Entity
@@ -32,20 +30,18 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = "id")
-@Getter
-@Setter
 @Table(name = "events")
 public class Event implements Serializable {
-
 	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	private String name;
-
 	private String description;
 
+	@ToString.Exclude
 	@ManyToMany
 	@JoinTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"), inverseJoinColumns = @JoinColumn(name = "speaker_id"))
 	@Size(max = 3, message = "An event can have 3 speakers at most.")
@@ -66,5 +62,4 @@ public class Event implements Serializable {
 
 	@Column(nullable = false)
 	private BigDecimal price;
-
 }
