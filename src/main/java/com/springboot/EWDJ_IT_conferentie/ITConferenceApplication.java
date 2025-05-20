@@ -7,14 +7,19 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
+import service.AdminService;
+import service.AdminServiceImpl;
 import service.EventService;
 import service.EventServiceImpl;
+import service.FavoriteService;
+import service.FavoriteServiceImpl;
+import service.LoginService;
+import service.LoginServiceImpl;
 import service.RoomService;
 import service.RoomServiceImpl;
 import service.SpeakerService;
@@ -22,7 +27,8 @@ import service.SpeakerServiceImpl;
 import service.UserDetailsServiceImpl;
 import service.UserService;
 import service.UserServiceImpl;
-import validation.ConferencePeriodValidator;
+import service.ValidationService;
+import service.ValidationServiceImpl;
 import validation.EventValidator;
 
 @SpringBootApplication
@@ -40,11 +46,10 @@ public class ITConferenceApplication implements WebMvcConfigurer {
 		registry.addViewController("/error").setViewName("error");
 	}
 
-	/* LOCALE */
 	@Bean
 	LocaleResolver localeResolver() {
 		SessionLocaleResolver slr = new SessionLocaleResolver();
-		slr.setDefaultLocale(new Locale("en", "BE"));// or any Euro zone locale
+		slr.setDefaultLocale(new Locale("en", "BE"));
 		return slr;
 	}
 
@@ -69,9 +74,25 @@ public class ITConferenceApplication implements WebMvcConfigurer {
 		return new SpeakerServiceImpl();
 	}
 
-	/*
-	 * @Bean MetricsService metricsService() { return new MetricsService(); }
-	 */
+	@Bean
+	AdminService AdminServiceImpl() {
+		return new AdminServiceImpl();
+	}
+
+	@Bean
+	FavoriteService FavoriteServiceImpl() {
+		return new FavoriteServiceImpl();
+	}
+
+	@Bean
+	LoginService LoginServiceImpl() {
+		return new LoginServiceImpl();
+	}
+
+	@Bean
+	ValidationService ValidationServiceImpl() {
+		return new ValidationServiceImpl();
+	}
 
 	@Bean
 	RoomService Roomservice() {
@@ -79,15 +100,6 @@ public class ITConferenceApplication implements WebMvcConfigurer {
 	}
 
 	/* VALIDATOR */
-	@Bean
-	ConferencePeriodValidator ConferencePeriodValidator() {
-		return new ConferencePeriodValidator();
-	}
-
-	@Bean
-	HiddenHttpMethodFilter hiddenHttpMethodFilter() {
-		return new HiddenHttpMethodFilter();
-	}
 
 	@Bean
 	EventValidator EventValidator() {

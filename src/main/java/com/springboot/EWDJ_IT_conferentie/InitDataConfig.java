@@ -2,7 +2,10 @@ package com.springboot.EWDJ_IT_conferentie;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -36,101 +39,160 @@ public class InitDataConfig implements CommandLineRunner {
 	private SpeakerRepository speakerRepository;
 
 	private final PasswordEncoder encoder = new BCryptPasswordEncoder();
+	private final Random random = new Random();
 
 	@Override
 	public void run(String... args) throws Exception {
+		List<MyUser> users = new ArrayList<>();
+		users.add(MyUser.builder().username("admin").password(encoder.encode("password")).role(Role.ADMIN).build());
+		users.add(MyUser.builder().username("johnadmin").password(encoder.encode("password")).role(Role.ADMIN).build());
+		users.add(MyUser.builder().username("alice").password(encoder.encode("password")).role(Role.USER).build());
+		users.add(MyUser.builder().username("bob").password(encoder.encode("password")).role(Role.USER).build());
+		users.add(MyUser.builder().username("charlie").password(encoder.encode("password")).role(Role.USER).build());
+		users.add(MyUser.builder().username("diana").password(encoder.encode("password")).role(Role.USER).build());
+		users.add(MyUser.builder().username("ethan").password(encoder.encode("password")).role(Role.USER).build());
+		users.add(MyUser.builder().username("fiona").password(encoder.encode("password")).role(Role.USER).build());
+		users.add(MyUser.builder().username("george").password(encoder.encode("password")).role(Role.USER).build());
+		users.add(MyUser.builder().username("hannah").password(encoder.encode("password")).role(Role.USER).build());
+		userRepository.saveAll(users);
 
-		// Create users
-		MyUser user1 = MyUser.builder().username("alice").password(encoder.encode("password")).role(Role.USER).build();
+		List<Room> rooms = new ArrayList<>();
+		rooms.add(Room.builder().name("A101").capacity(30).build());
+		rooms.add(Room.builder().name("A102").capacity(40).build());
+		rooms.add(Room.builder().name("A103").capacity(50).build());
+		rooms.add(Room.builder().name("B201").capacity(25).build());
+		rooms.add(Room.builder().name("B202").capacity(35).build());
+		rooms.add(Room.builder().name("B203").capacity(45).build());
+		rooms.add(Room.builder().name("C301").capacity(20).build());
+		rooms.add(Room.builder().name("C302").capacity(30).build());
+		rooms.add(Room.builder().name("C303").capacity(40).build());
+		rooms.add(Room.builder().name("D401").capacity(15).build());
+		rooms.add(Room.builder().name("D402").capacity(25).build());
+		rooms.add(Room.builder().name("D403").capacity(35).build());
+		roomRepository.saveAll(rooms);
 
-		MyUser admin = MyUser.builder().username("admin").password(encoder.encode("password")).role(Role.ADMIN).build();
+		List<Speaker> speakers = new ArrayList<>();
+		speakers.add(Speaker.builder().name("Alice Johnson").build());
+		speakers.add(Speaker.builder().name("Bob Smith").build());
+		speakers.add(Speaker.builder().name("Charlie Baker").build());
+		speakers.add(Speaker.builder().name("Diana Wong").build());
+		speakers.add(Speaker.builder().name("Edward Kim").build());
+		speakers.add(Speaker.builder().name("Fiona Chen").build());
+		speakers.add(Speaker.builder().name("George Rodriguez").build());
+		speakers.add(Speaker.builder().name("Hannah Davis").build());
+		speakers.add(Speaker.builder().name("Ian Patel").build());
+		speakers.add(Speaker.builder().name("Julia Nguyen").build());
+		speakers.add(Speaker.builder().name("Kevin Lee").build());
+		speakers.add(Speaker.builder().name("Laura Wilson").build());
+		speakers.add(Speaker.builder().name("Michael Brown").build());
+		speakers.add(Speaker.builder().name("Nina Garcia").build());
+		speakers.add(Speaker.builder().name("Oscar Martinez").build());
+		speakers.add(Speaker.builder().name("Priya Sharma").build());
+		speakers.add(Speaker.builder().name("Quincy Taylor").build());
+		speakers.add(Speaker.builder().name("Rachel Green").build());
+		speakers.add(Speaker.builder().name("Samuel Jackson").build());
+		speakers.add(Speaker.builder().name("Tina Turner").build());
+		speakerRepository.saveAll(speakers);
 
-		userRepository.saveAll(List.of(user1, admin));
+		List<LocalDateTime> timeSlots = new ArrayList<>();
+		for (int day = 1; day <= 7; day++) {
+			timeSlots.add(LocalDateTime.of(2025, 6, day, 9, 0));
+			timeSlots.add(LocalDateTime.of(2025, 6, day, 11, 0));
+			timeSlots.add(LocalDateTime.of(2025, 6, day, 14, 0));
+			timeSlots.add(LocalDateTime.of(2025, 6, day, 16, 0));
+		}
 
-		// Create rooms
-		Room roomA123 = Room.builder().name("A123").capacity(50).build();
-		Room roomB234 = Room.builder().name("B234").capacity(30).build();
-		Room roomC345 = Room.builder().name("C345").capacity(45).build();
-		Room roomD456 = Room.builder().name("D456").capacity(20).build();
-		Room roomE567 = Room.builder().name("E567").capacity(40).build();
+		List<Event> events = new ArrayList<>();
+		events.add(Event.builder().name("Spring Boot Fundamentals")
+				.description("An introduction to Spring Boot core concepts")
+				.speakers(List.of(speakers.get(0), speakers.get(1))).room(rooms.get(0)).dateTime(timeSlots.get(0))
+				.beamerCode(1234).beamerCheck(1234 % 97).price(new BigDecimal("49.99")).build());
+		events.add(Event.builder().name("Reactive Programming with WebFlux")
+				.description("Building responsive applications with Spring WebFlux").speakers(List.of(speakers.get(2)))
+				.room(rooms.get(1)).dateTime(timeSlots.get(0)).beamerCode(2345).beamerCheck(2345 % 97)
+				.price(new BigDecimal("39.99")).build());
+		events.add(Event.builder().name("Advanced Microservices")
+				.description("Design patterns for microservice architecture")
+				.speakers(List.of(speakers.get(3), speakers.get(4))).room(rooms.get(2)).dateTime(timeSlots.get(1))
+				.beamerCode(3456).beamerCheck(3456 % 97).price(new BigDecimal("59.99")).build());
+		events.add(Event.builder().name("Docker and Kubernetes")
+				.description("Containerization and orchestration for Java applications")
+				.speakers(List.of(speakers.get(5))).room(rooms.get(3)).dateTime(timeSlots.get(1)).beamerCode(4567)
+				.beamerCheck(4567 % 97).price(new BigDecimal("69.99")).build());
+		events.add(Event.builder().name("Cloud-Native Java").description("Building applications for the cloud")
+				.speakers(List.of(speakers.get(6), speakers.get(7))).room(rooms.get(4)).dateTime(timeSlots.get(2))
+				.beamerCode(5678).beamerCheck(5678 % 97).price(new BigDecimal("54.99")).build());
+		events.add(Event.builder().name("Spring Security in Depth")
+				.description("Authentication, authorization, and beyond").speakers(List.of(speakers.get(8)))
+				.room(rooms.get(5)).dateTime(timeSlots.get(2)).beamerCode(6789).beamerCheck(6789 % 97)
+				.price(new BigDecimal("44.99")).build());
+		events.add(Event.builder().name("Test-Driven Development").description("Best practices for TDD in Java")
+				.speakers(List.of(speakers.get(9), speakers.get(10))).room(rooms.get(6)).dateTime(timeSlots.get(3))
+				.beamerCode(7890).beamerCheck(7890 % 97).price(new BigDecimal("34.99")).build());
+		events.add(Event.builder().name("RESTful API Design").description("Building elegant and scalable APIs")
+				.speakers(List.of(speakers.get(11))).room(rooms.get(7)).dateTime(timeSlots.get(3)).beamerCode(8901)
+				.beamerCheck(8901 % 97).price(new BigDecimal("29.99")).build());
+		events.add(Event.builder().name("Advanced Hibernate").description("Performance tuning and advanced mappings")
+				.speakers(List.of(speakers.get(12), speakers.get(13))).room(rooms.get(8)).dateTime(timeSlots.get(4))
+				.beamerCode(9012).beamerCheck(9012 % 97).price(new BigDecimal("64.99")).build());
+		events.add(Event.builder().name("GraphQL with Spring").description("Building flexible APIs with GraphQL")
+				.speakers(List.of(speakers.get(14))).room(rooms.get(9)).dateTime(timeSlots.get(4)).beamerCode(1357)
+				.beamerCheck(1357 % 97).price(new BigDecimal("74.99")).build());
+		events.add(Event.builder().name("DevOps for Java Developers").description("CI/CD pipelines and automation")
+				.speakers(List.of(speakers.get(15), speakers.get(16))).room(rooms.get(10)).dateTime(timeSlots.get(5))
+				.beamerCode(2468).beamerCheck(2468 % 97).price(new BigDecimal("59.99")).build());
+		events.add(Event.builder().name("Java Performance Tuning").description("Finding and fixing bottlenecks")
+				.speakers(List.of(speakers.get(17))).room(rooms.get(11)).dateTime(timeSlots.get(5)).beamerCode(3698)
+				.beamerCheck(3698 % 97).price(new BigDecimal("49.99")).build());
+		events.add(Event.builder().name("Kotlin for Java Developers").description("Transitioning to Kotlin from Java")
+				.speakers(List.of(speakers.get(18), speakers.get(19))).room(rooms.get(0)).dateTime(timeSlots.get(6))
+				.beamerCode(7531).beamerCheck(7531 % 97).price(new BigDecimal("39.99")).build());
+		events.add(Event.builder().name("Clean Code Principles").description("Writing maintainable and readable code")
+				.speakers(List.of(speakers.get(0), speakers.get(19))).room(rooms.get(1)).dateTime(timeSlots.get(6))
+				.beamerCode(8642).beamerCheck(8642 % 97).price(new BigDecimal("44.99")).build());
+		events.add(Event.builder().name("Event-Driven Architecture").description("Building systems with event streams")
+				.speakers(List.of(speakers.get(1), speakers.get(18))).room(rooms.get(2)).dateTime(timeSlots.get(7))
+				.beamerCode(9753).beamerCheck(9753 % 97).price(new BigDecimal("54.99")).build());
+		events.add(Event.builder().name("Domain-Driven Design")
+				.description("Strategic and tactical patterns for complex domains")
+				.speakers(List.of(speakers.get(2), speakers.get(3))).room(rooms.get(3)).dateTime(timeSlots.get(8))
+				.beamerCode(1470).beamerCheck(1470 % 97).price(new BigDecimal("69.99")).build());
+		events.add(Event.builder().name("Spring Data Deep Dive").description("Advanced data access with Spring Data")
+				.speakers(List.of(speakers.get(4))).room(rooms.get(4)).dateTime(timeSlots.get(8)).beamerCode(2581)
+				.beamerCheck(2581 % 97).price(new BigDecimal("49.99")).build());
+		events.add(Event.builder().name("Java 21 Features").description("New features in Java 21")
+				.speakers(List.of(speakers.get(5), speakers.get(6))).room(rooms.get(5)).dateTime(timeSlots.get(12))
+				.beamerCode(3692).beamerCheck(3692 % 97).price(new BigDecimal("54.99")).build());
+		events.add(Event.builder().name("Machine Learning for Java Developers")
+				.description("Introduction to ML libraries for Java").speakers(List.of(speakers.get(7)))
+				.room(rooms.get(6)).dateTime(timeSlots.get(16)).beamerCode(4803).beamerCheck(4803 % 97)
+				.price(new BigDecimal("79.99")).build());
+		events.add(Event.builder().name("Web Security Fundamentals").description("Protecting your web applications")
+				.speakers(List.of(speakers.get(8), speakers.get(9))).room(rooms.get(7)).dateTime(timeSlots.get(20))
+				.beamerCode(5914).beamerCheck(5914 % 97).price(new BigDecimal("64.99")).build());
+		events.add(Event.builder().name("Serverless Java").description("Building serverless applications with Java")
+				.speakers(List.of(speakers.get(10))).room(rooms.get(8)).dateTime(timeSlots.get(24)).beamerCode(6025)
+				.beamerCheck(6025 % 97).price(new BigDecimal("69.99")).build());
 
-		roomRepository.saveAll(List.of(roomA123, roomB234, roomC345, roomD456, roomE567));
+		eventRepository.saveAll(events);
+		setFavoritesForUsers(users, events);
+	}
 
-		// Create speakers
-		Speaker aliceJohnson = Speaker.builder().name("Alice Johnson").build();
-		Speaker bobSmith = Speaker.builder().name("Bob Smith").build();
-		Speaker charlieBaker = Speaker.builder().name("Charlie Baker").build();
-		Speaker carolWhite = Speaker.builder().name("Carol White").build();
-		Speaker davidGreen = Speaker.builder().name("David Green").build();
-		Speaker erinLee = Speaker.builder().name("Erin Lee").build();
-		Speaker frankNovak = Speaker.builder().name("Frank Novak").build();
-		Speaker graceKim = Speaker.builder().name("Grace Kim").build();
-		Speaker harryStone = Speaker.builder().name("Harry Stone").build();
-		Speaker ireneWoods = Speaker.builder().name("Irene Woods").build();
-		Speaker jamesTan = Speaker.builder().name("James Tan").build();
-		Speaker kellyZhang = Speaker.builder().name("Kelly Zhang").build();
-
-		speakerRepository.saveAll(List.of(aliceJohnson, bobSmith, charlieBaker, carolWhite, davidGreen, erinLee,
-				frankNovak, graceKim, harryStone, ireneWoods, jamesTan, kellyZhang));
-
-		// Conference dates (May 1-3, 2025)
-		LocalDateTime day1Morning = LocalDateTime.of(2025, 5, 1, 10, 0);
-		LocalDateTime day1Afternoon = LocalDateTime.of(2025, 5, 1, 14, 0);
-		LocalDateTime day2Morning = LocalDateTime.of(2025, 5, 2, 10, 0);
-		LocalDateTime day2Afternoon = LocalDateTime.of(2025, 5, 2, 14, 0);
-		LocalDateTime day3Morning = LocalDateTime.of(2025, 5, 3, 10, 0);
-		LocalDateTime day3Afternoon = LocalDateTime.of(2025, 5, 3, 14, 0);
-
-		// Events with proper validation
-		Event event1 = Event.builder().name("Spring Boot Workshop")
-				.description("A workshop on Spring Boot fundamentals").speakers(List.of(aliceJohnson, bobSmith))
-				.room(roomA123).dateTime(day1Morning).beamerCode(1234).beamerCheck(12).price(new BigDecimal("49.99"))
-				.build();
-
-		Event event2 = Event.builder().name("Thymeleaf Deep Dive")
-				.description("In-depth session on Thymeleaf templating engine").speakers(List.of(carolWhite))
-				.room(roomB234).dateTime(day1Morning) // Same time as event1, different room
-				.beamerCode(5678).beamerCheck(56).price(new BigDecimal("39.99")).build();
-
-		Event event3 = Event.builder().name("Security in Spring")
-				.description("Spring Security essentials and best practices").speakers(List.of(davidGreen))
-				.room(roomC345).dateTime(day1Afternoon).beamerCode(9012).beamerCheck(90).price(new BigDecimal("59.99"))
-				.build();
-
-		Event event4 = Event.builder().name("REST API Design")
-				.description("How to design clean REST APIs with Spring Boot").speakers(List.of(erinLee)).room(roomA123)
-				.dateTime(day1Afternoon) // Same time as event3, different room
-				.beamerCode(3456).beamerCheck(34).price(new BigDecimal("44.99")).build();
-
-		Event event5 = Event.builder().name("Docker for Java Developers")
-				.description("Learn Docker basics and how to containerize Spring apps").speakers(List.of(frankNovak))
-				.room(roomD456).dateTime(day2Morning).beamerCode(7890).beamerCheck(78).price(new BigDecimal("34.99"))
-				.build();
-
-		Event event6 = Event.builder().name("Kubernetes 101").description("Get started with Kubernetes orchestration")
-				.speakers(List.of(graceKim)).room(roomE567).dateTime(day2Morning) // Same time as event5, different room
-				.beamerCode(2345).beamerCheck(23).price(new BigDecimal("69.99")).build();
-
-		Event event7 = Event.builder().name("Microservices Architecture")
-				.description("Building scalable microservices with Spring Cloud").speakers(List.of(harryStone))
-				.room(roomC345).dateTime(day2Afternoon).beamerCode(6789).beamerCheck(67).price(new BigDecimal("79.99"))
-				.build();
-
-		Event event8 = Event.builder().name("CI/CD Pipelines with GitHub Actions")
-				.description("Automate your deployment pipelines using GitHub Actions").speakers(List.of(ireneWoods))
-				.room(roomB234).dateTime(day3Morning).beamerCode(1357).beamerCheck(13).price(new BigDecimal("29.99"))
-				.build();
-
-		Event event9 = Event.builder().name("Advanced JPA & Hibernate")
-				.description("Performance tuning and advanced mappings with JPA").speakers(List.of(jamesTan))
-				.room(roomA123) // same room reused
-				.dateTime(day3Morning).beamerCode(2468).beamerCheck(24).price(new BigDecimal("54.99")).build();
-
-		Event event10 = Event.builder().name("Java 21 Features").description("Explore the latest features in Java 21")
-				.speakers(List.of(kellyZhang)).room(roomE567) // same room reused
-				.dateTime(day3Afternoon).beamerCode(9876).beamerCheck(98).price(new BigDecimal("64.99")).build();
-
-		eventRepository
-				.saveAll(List.of(event1, event2, event3, event4, event5, event6, event7, event8, event9, event10));
+	private void setFavoritesForUsers(List<MyUser> users, List<Event> events) {
+		final int FAVORITES_LIMIT = 5;
+		for (MyUser user : users) {
+			if (user.getRole() == Role.ADMIN)
+				continue;
+			List<Event> availableEvents = new ArrayList<>(events);
+			int numFavorites = random.nextInt(FAVORITES_LIMIT) + 1;
+			if (user.getFavorites() == null) {
+				user.setFavorites(new HashSet<>());
+			}
+			for (int i = 0; i < numFavorites && !availableEvents.isEmpty(); i++) {
+				int index = random.nextInt(availableEvents.size());
+				user.getFavorites().add(availableEvents.remove(index));
+			}
+			userRepository.save(user);
+		}
 	}
 }

@@ -1,56 +1,56 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="layout/base :: head">
     <title th:text="#{room.delete.confirm.title} + ' - ' + #{app.name}"></title>
 </head>
 <body>
-    <div th:replace="layout/base :: nav"></div>
+<div th:replace="layout/base :: nav"></div>
 
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow border-danger">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <span>Confirm Delete</span>
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-0" th:text="#{room.delete.confirm}"></p>
-                        <div class="alert alert-warning mt-3" role="alert">
-                            <strong>Room:</strong> <span th:text="${room.name}"></span>
-                            <div>
-                                <strong>Capacity:</strong> <span th:text="${room.capacity}"></span> seats
-                            </div>
-                            <div th:if="${!room.events.isEmpty()}">
-                                <strong>Warning:</strong> This room has 
-                                <span th:text="${room.events.size()}"></span> scheduled events.
-                            </div>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span th:text="#{room.delete.confirm.title}"></span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0" th:text="#{room.delete.confirm}"></p>
+                    <div class="alert alert-warning mt-3" role="alert">
+                        <strong></strong> <span th:text="${room.name}"></span>
+                        <div>
+                            <strong th:text="#{room.capacity} + ':'"></strong> <span th:text="${room.capacity}"></span> 
+                            <span th:text="#{room.capacity.seats}"></span>
+                        </div>
+                        <div th:if="${!room.events.isEmpty()}" class="mt-2 text-danger">
+                            <strong th:text="#{room.delete.events.warning(${room.events.size()})}"></strong>
+                            <div th:text="#{room.delete.events.notice}"></div>
                         </div>
                     </div>
-                    <div class="card-footer d-flex justify-content-between">
-                        <a th:href="@{/rooms(capacity=${capacityFilter},search=${searchFilter},sort=${sortFilter})}" 
-                           class="btn btn-secondary">
-                            <i class="fas fa-arrow-left me-1"></i>
-                            Cancel
-                        </a>
-                        <form th:action="@{/rooms/{id}/delete(id=${room.id})}" method="post">
-  
-                            <input type="hidden" name="capacity" th:value="${capacityFilter}" th:if="${capacityFilter != null}">
-                            <input type="hidden" name="search" th:value="${searchFilter}" th:if="${searchFilter != null}">
-                            <input type="hidden" name="sort" th:value="${sortFilter}" th:if="${sortFilter != null}">
-                            
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash-alt me-1"></i>
-                                <span th:text="#{room.delete.button}"></span>
-                            </button>
-                        </form>
-                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a th:href="@{/rooms(capacity=${capacityFilter},search=${searchFilter},sort=${sortFilter})}"
+                       class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        <span th:text="#{form.cancel}"></span>
+                    </a>
+                    <form th:action="@{/rooms/{id}/delete(id=${room.id})}" method="post">
+                        <input type="hidden" name="capacity" th:value="${capacityFilter}" th:if="${capacityFilter != null}">
+                        <input type="hidden" name="search" th:value="${searchFilter}" th:if="${searchFilter != null}">
+                        <input type="hidden" name="sort" th:value="${sortFilter}" th:if="${sortFilter != null}">
+
+                        <button type="submit" class="btn btn-danger" th:disabled="${!room.events.isEmpty()}">
+                            <i class="fas fa-trash-alt me-1"></i>
+                            <span th:text="#{room.delete.button}"></span>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>

@@ -77,9 +77,11 @@
                                            name="dateTime" 
                                            th:value="${event.dateTime != null ? #temporals.format(event.dateTime, 'yyyy-MM-dd''T''HH:mm') : ''}" 
                                            th:classappend="${#fields.hasErrors('dateTime')} ? 'is-invalid'"
+                                           min="2025-06-01T00:00"
+                                           max="2025-06-07T23:59"
                                            required />
                                     <div class="invalid-feedback" th:if="${#fields.hasErrors('dateTime')}" th:errors="*{dateTime}"></div>
-                                    <small class="form-text text-muted" th:text="#{event.datetime.help}"></small>
+                                    <small class="form-text text-muted">Event must be scheduled during the conference period (June 1-7, 2025)</small>
                                 </div>
 
                           
@@ -126,7 +128,6 @@
                                             <span th:text="#{event.beamer.code}"></span>
                                             <span class="text-danger ms-1">*</span>
                                         </label>
-                                        <!-- Add name="updateBeamer" and formaction to trigger controller method -->
                                         <div class="input-group">
                                             <input type="number" class="form-control" id="beamerCode" th:field="*{beamerCode}" 
                                                    min="0" max="9999" required
@@ -164,42 +165,42 @@
                                     </label>
                                     <small class="form-text text-muted d-block mb-2" th:text="#{event.speakers.help}"></small>
                                 
-                               <div class="input-group mb-2">
-    <span class="input-group-text"><i class="fas fa-user"></i></span>
-    <select name="speaker1Id" id="speaker1Id" class="form-select" 
-            th:classappend="${speakerError != null} ? 'is-invalid'">
-        <option th:value=-1 th:text="#{event.speaker.select}"></option>
-        <option th:each="sp : ${allSpeakers}" 
-                th:value="${sp.id}" 
-                th:text="${sp.name}"
-                th:selected="${speaker1Id != null ? sp.id == speaker1Id : (speaker1 != null ? sp.id == speaker1.id : false)}">
-        </option>
-    </select>
-</div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <select name="speaker1Id" id="speaker1Id" class="form-select" 
+                                            th:classappend="${speakerError != null} ? 'is-invalid'">
+                                        <option th:value=-1 th:text="#{event.speaker.select}"></option>
+                                        <option th:each="sp : ${allSpeakers}" 
+                                                th:value="${sp.id}" 
+                                                th:text="${sp.name}"
+                                                th:selected="${speaker1Id != null ? sp.id == speaker1Id : (speaker1 != null ? sp.id == speaker1.id : false)}">
+                                        </option>
+                                    </select>
+                                </div>
 
-<div class="input-group mb-2">
-    <span class="input-group-text"><i class="fas fa-user"></i></span>
-    <select name="speaker2Id" id="speaker2Id" class="form-select">
-        <option th:value=-1 th:text="#{event.speaker.select}"></option>
-        <option th:each="sp : ${allSpeakers}" 
-                th:value="${sp.id}" 
-                th:text="${sp.name}"
-                th:selected="${speaker2Id != null ? sp.id == speaker2Id : (speaker2 != null ? sp.id == speaker2.id : false)}">
-        </option>
-    </select>
-</div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <select name="speaker2Id" id="speaker2Id" class="form-select">
+                                        <option th:value=-1 th:text="#{event.speaker.select}"></option>
+                                        <option th:each="sp : ${allSpeakers}" 
+                                                th:value="${sp.id}" 
+                                                th:text="${sp.name}"
+                                                th:selected="${speaker2Id != null ? sp.id == speaker2Id : (speaker2 != null ? sp.id == speaker2.id : false)}">
+                                        </option>
+                                    </select>
+                                </div>
 
-<div class="input-group mb-2">
-    <span class="input-group-text"><i class="fas fa-user"></i></span>
-    <select name="speaker3Id" id="speaker3Id" class="form-select">
-        <option th:value=-1 th:text="#{event.speaker.select}"></option>
-        <option th:each="sp : ${allSpeakers}" 
-                th:value="${sp.id}" 
-                th:text="${sp.name}"
-                th:selected="${speaker3Id != null ? sp.id == speaker3Id : (speaker3 != null ? sp.id == speaker3.id : false)}">
-        </option>
-    </select>
-</div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <select name="speaker3Id" id="speaker3Id" class="form-select">
+                                        <option th:value=-1 th:text="#{event.speaker.select}"></option>
+                                        <option th:each="sp : ${allSpeakers}" 
+                                                th:value="${sp.id}" 
+                                                th:text="${sp.name}"
+                                                th:selected="${speaker3Id != null ? sp.id == speaker3Id : (speaker3 != null ? sp.id == speaker3.id : false)}">
+                                        </option>
+                                    </select>
+                                </div>
                                     <div class="invalid-feedback" th:if="${speakerError != null}" th:text="#{error.speaker.required}"></div>
                                 </div>
 

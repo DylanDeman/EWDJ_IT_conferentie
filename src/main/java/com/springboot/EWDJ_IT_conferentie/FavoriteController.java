@@ -9,50 +9,26 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import service.EventService;
+import service.FavoriteService;
 
 @Controller
 @RequestMapping("/events")
 public class FavoriteController {
 
 	@Autowired
-	private EventService eventService;
+	private FavoriteService favoriteService;
 
 	@PostMapping("/{id}/favorite")
 	public String addToFavorites(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
 
-		if (userDetails == null) {
-			redirectAttributes.addFlashAttribute("error", "You must be logged in to add favorites.");
-			return "redirect:/login";
-		}
-
-		try {
-			eventService.addToFavorites(id, userDetails.getUsername());
-			redirectAttributes.addFlashAttribute("message", "Event added to favorites");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", e.getMessage());
-		}
-
-		return "redirect:/events/" + id;
+		return favoriteService.processAddToFavorites(id, userDetails, redirectAttributes);
 	}
 
 	@PostMapping("/{id}/unfavorite")
 	public String removeFromFavorites(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails,
 			RedirectAttributes redirectAttributes) {
 
-		if (userDetails == null) {
-			redirectAttributes.addFlashAttribute("error", "You must be logged in to remove favorites.");
-			return "redirect:/login";
-		}
-
-		try {
-			eventService.removeFromFavorites(id, userDetails.getUsername());
-			redirectAttributes.addFlashAttribute("message", "Event removed from favorites");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", e.getMessage());
-		}
-
-		return "redirect:/user/favorites";
+		return favoriteService.processRemoveFromFavorites(id, userDetails, redirectAttributes);
 	}
 }
