@@ -1,5 +1,6 @@
 package com.springboot.EWDJ_IT_conferentie;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,7 @@ import service.RoomService;
 import service.SpeakerService;
 import service.UserService;
 import util.Role;
+import validation.EventValidator;
 
 @Controller
 @RequestMapping("/events")
@@ -47,7 +49,9 @@ public class EventController {
 	@Autowired
 	private UserService userService;
 
-	// LIST + VIEW EVENTS
+	@Autowired
+	private EventValidator eventValidator;
+
 	@GetMapping({ "", "/" })
 	public String listEvents(Model model, @RequestParam(required = false) String date,
 			@RequestParam(required = false) Long room,
@@ -102,24 +106,44 @@ public class EventController {
 		}
 	}
 
-	// ADD EVENT
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/new")
 	public String showAddEventForm(Model model) {
 		Event event = new Event();
 		event.setSpeakers(new ArrayList<>());
 		model.addAttribute("event", event);
+		model.addAttribute("beamerCheck", "00");
 		populateModelForForm(model);
 		addSpeakerSelectionAttributes(model, event);
 		return "events/form";
 	}
 
-	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/new")
 	public String addEvent(@Valid @ModelAttribute Event event, BindingResult result,
 			@RequestParam(required = false) Long speaker1Id, @RequestParam(required = false) Long speaker2Id,
-			@RequestParam(required = false) Long speaker3Id, @RequestParam Long roomId, Model model,
-			RedirectAttributes redirectAttributes) {
+			@RequestParam(required = false) Long speaker3Id, @RequestParam Long roomId,
+			@RequestParam(required = false) String beamerCheck, @RequestParam(required = false) String action,
+			Model model, RedirectAttributes redirectAttributes) {
+
+		if ("calculate".equals(action)) {
+			Room room = roomService.findById(roomId).orElse(null);
+			if (room != null) {
+				event.setRoom(room);
+			}
+
+			int calculatedCheck = event.getBeamerCode() % 97;
+			model.addAttribute("beamerCheck", String.format("%02d", calculatedCheck));
+
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
+
+			setSpeakers(event, speaker1Id, speaker2Id, speaker3Id);
+
+			populateModelForForm(model);
+			addSpeakerSelectionAttributes(model, event);
+			return "events/form";
+		}
 
 		Room room = roomService.findById(roomId)
 				.orElseThrow(() -> new IllegalArgumentException("Room not found with id: " + roomId));
@@ -127,7 +151,50 @@ public class EventController {
 
 		setSpeakers(event, speaker1Id, speaker2Id, speaker3Id);
 
+		// Validate name uniqueness for the event date
+		if (event.getDateTime() != null && event.getName() != null && !event.getName().isEmpty()) {
+			LocalDate eventDate = event.getDateTime().toLocalDate();
+			if (eventService.existsByNameAndDate(event.getName(), eventDate)) {
+				result.rejectValue("name", "error.name.exists",
+						"An event with this name already exists on the same date");
+			}
+		}
+
+		int calculatedCheck = event.getBeamerCode() % 97;
+		if (beamerCheck == null || !beamerCheck.equals(String.format("%02d", calculatedCheck))) {
+			model.addAttribute("beamerCheckError", "Invalid checksum. Expected: " + calculatedCheck);
+			model.addAttribute("beamerCheck", String.format("%02d", calculatedCheck));
+
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
+
+			populateModelForForm(model);
+			addSpeakerSelectionAttributes(model, event);
+			return "events/form";
+		}
+
+		boolean hasSpeaker = (speaker1Id != null && speaker1Id != -1) || (speaker2Id != null && speaker2Id != -1)
+				|| (speaker3Id != null && speaker3Id != -1);
+
+		if (!hasSpeaker) {
+			model.addAttribute("speakerError", "At least one speaker must be selected.");
+
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
+
+			model.addAttribute("beamerCheck", String.format("%02d", calculatedCheck));
+			populateModelForForm(model);
+			addSpeakerSelectionAttributes(model, event);
+			return "events/form";
+		}
+
 		if (result.hasErrors()) {
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
+			model.addAttribute("beamerCheck", String.format("%02d", calculatedCheck));
 			populateModelForForm(model);
 			addSpeakerSelectionAttributes(model, event);
 			return "events/form";
@@ -141,6 +208,7 @@ public class EventController {
 			result.rejectValue(null, null, e.getMessage());
 			populateModelForForm(model);
 			addSpeakerSelectionAttributes(model, event);
+			model.addAttribute("beamerCheck", beamerCheck);
 			return "events/form";
 		}
 	}
@@ -160,39 +228,109 @@ public class EventController {
 			event.setSpeakers(new ArrayList<>());
 		}
 
+		int calculatedCheck = event.getBeamerCode() % 97;
+		model.addAttribute("beamerCheck", String.format("%02d", calculatedCheck));
+
 		model.addAttribute("event", event);
 		populateModelForForm(model);
 		addSpeakerSelectionAttributes(model, event);
 		return "events/form";
 	}
 
-	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("/{id}/edit")
 	public String editEvent(@PathVariable Long id, @Valid @ModelAttribute Event event, BindingResult result,
 			@RequestParam Long roomId, @RequestParam(required = false) Long speaker1Id,
 			@RequestParam(required = false) Long speaker2Id, @RequestParam(required = false) Long speaker3Id,
-			@RequestParam(required = false) String action, Model model, RedirectAttributes redirectAttributes) {
+			@RequestParam String beamerCheck, @RequestParam(required = false) String action, Model model,
+			RedirectAttributes redirectAttributes) {
 
-		// Set the Room on event before validation or save
 		Room room = roomService.findById(roomId)
 				.orElseThrow(() -> new IllegalArgumentException("Room not found with id:" + roomId));
 		event.setRoom(room);
 
-		// Set speakers like you already do
-		setSpeakers(event, speaker1Id, speaker2Id, speaker3Id);
+		if ("calculate".equals(action)) {
+			int calculatedCheck = event.getBeamerCode() % 97;
+			model.addAttribute("beamerCheck", String.format("%02d", calculatedCheck));
 
-		if ("addSpeaker".equals(action)) {
-			if (event.getSpeakers().size() < 3) {
-				event.getSpeakers().add(new Speaker());
-			}
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
+
+			setSpeakers(event, speaker1Id, speaker2Id, speaker3Id);
+
 			populateModelForForm(model);
 			addSpeakerSelectionAttributes(model, event);
 			return "events/form";
 		}
 
+		if ("addSpeaker".equals(action)) {
+			if (event.getSpeakers() == null) {
+				event.setSpeakers(new ArrayList<>());
+			}
+			if (event.getSpeakers().size() < 3) {
+				event.getSpeakers().add(new Speaker());
+			}
+
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
+
+			populateModelForForm(model);
+			addSpeakerSelectionAttributes(model, event);
+			model.addAttribute("beamerCheck", beamerCheck);
+			return "events/form";
+		}
+
+		eventValidator.validate(event, result);
+
+		if (event.getDateTime() != null) {
+			LocalDate eventDate = event.getDateTime().toLocalDate();
+			// Check for duplicate name on same date (exclude current event)
+			if (eventService.existsByNameAndDateExcludingId(event.getName(), eventDate, id)) {
+				result.rejectValue("name", "error.name.exists",
+						"An event with this name already exists on the same date");
+			}
+		}
+
+		int calculatedCheck = event.getBeamerCode() % 97;
+		if (beamerCheck == null || !beamerCheck.equals(String.format("%02d", calculatedCheck))) {
+			model.addAttribute("beamerCheckError", "Invalid checksum. Expected: " + calculatedCheck);
+			model.addAttribute("beamerCheck", String.format("%02d", calculatedCheck));
+
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
+
+			populateModelForForm(model);
+			addSpeakerSelectionAttributes(model, event);
+			return "events/form";
+		}
+
+		boolean hasSpeaker = (speaker1Id != null && speaker1Id != -1) || (speaker2Id != null && speaker2Id != -1)
+				|| (speaker3Id != null && speaker3Id != -1);
+
+		if (!hasSpeaker) {
+			model.addAttribute("speakerError", "At least one speaker must be selected.");
+
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
+
+			model.addAttribute("beamerCheck", String.format("%02d", calculatedCheck));
+			populateModelForForm(model);
+			addSpeakerSelectionAttributes(model, event);
+			return "events/form";
+		}
+
+		setSpeakers(event, speaker1Id, speaker2Id, speaker3Id);
+
 		if (result.hasErrors()) {
 			populateModelForForm(model);
 			addSpeakerSelectionAttributes(model, event);
+			model.addAttribute("beamerCheck", beamerCheck);
+			model.addAttribute("speaker1Id", speaker1Id);
+			model.addAttribute("speaker2Id", speaker2Id);
+			model.addAttribute("speaker3Id", speaker3Id);
 			return "events/form";
 		}
 
@@ -204,11 +342,11 @@ public class EventController {
 			result.rejectValue("", "", e.getMessage());
 			populateModelForForm(model);
 			addSpeakerSelectionAttributes(model, event);
+			model.addAttribute("beamerCheck", beamerCheck);
 			return "events/form";
 		}
 	}
 
-	// DELETE EVENT
 	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/{id}/delete")
 	public String deleteEvent(@PathVariable Long id, RedirectAttributes redirectAttributes) {
@@ -221,7 +359,6 @@ public class EventController {
 		return "redirect:/events";
 	}
 
-	// UTILS
 	private boolean isAdmin(String username) {
 		return userService.findByUsername(username).getRole() == Role.ADMIN;
 	}

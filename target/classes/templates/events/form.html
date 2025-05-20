@@ -7,7 +7,6 @@
     <div class="container mt-4">
      
         <div class="mb-3">
-            <!-- Changed to link to admin event management page -->
             <a th:href="@{/admin/events}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i> <span th:text="#{event.back.button}"></span>
             </a>
@@ -32,6 +31,11 @@
                           
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
 
+                                <!-- Display speaker validation error if present -->
+                                <div class="alert alert-danger" th:if="${speakerError != null}">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <span th:text="${speakerError}"></span>
+                                </div>
                             
                                 <div class="mb-3">
                                     <label for="name" class="form-label">
@@ -40,9 +44,11 @@
                                         <span class="text-danger ms-1">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="name" th:field="*{name}" required
+                                           pattern="[A-Za-z].*" title="Name must start with a letter"
                                            th:placeholder="#{event.name.placeholder}"
                                            th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
                                     <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+                                    <small class="form-text text-muted" th:text="#{event.name.help}">Name must start with a letter</small>
                                 </div>
 
                              
@@ -50,12 +56,12 @@
                                     <label for="description" class="form-label">
                                         <i class="fas fa-align-left me-1 text-secondary"></i>
                                         <span th:text="#{event.description}"></span>
-                                        <span class="text-danger ms-1">*</span>
                                     </label>
-                                    <textarea class="form-control" id="description" th:field="*{description}" rows="3" required
+                                    <textarea class="form-control" id="description" th:field="*{description}" rows="3"
                                               th:placeholder="#{event.description.placeholder}"
                                               th:classappend="${#fields.hasErrors('description')} ? 'is-invalid'"></textarea>
                                     <div class="invalid-feedback" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                                    <small class="form-text text-muted" th:text="#{event.description.help}">Description is optional</small>
                                 </div>
 
                            
@@ -105,27 +111,50 @@
                                     <div class="input-group">
                                         <span class="input-group-text">&euro;</span>
                                         <input type="number" class="form-control" id="price" th:field="*{price}" 
-                                               step="0.01" min="0" required
+                                               step="0.01" min="9.99" max="99.99" required
                                                th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'">
                                     </div>
                                     <div class="invalid-feedback" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></div>
                                     <small class="form-text text-muted" th:text="#{event.price.help}"></small>
                                 </div>
 
-                            
-                                <div class="mb-3">
-                                    <label for="beamerCode" class="form-label">
-                                        <i class="fas fa-projector me-1 text-secondary"></i>
-                                        <span th:text="#{event.beamer.code}"></span>
-                                        <span class="text-danger ms-1">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="beamerCode" th:field="*{beamerCode}" required
-                                           th:placeholder="#{event.beamer.code.placeholder}"
-                                           th:classappend="${#fields.hasErrors('beamerCode')} ? 'is-invalid'">
-                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('beamerCode')}" th:errors="*{beamerCode}"></div>
-                                    <small class="form-text text-muted" th:text="#{event.beamer.code.help}"></small>
+                                <!-- Beamer Code and Auto-Calculated Checksum -->
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="beamerCode" class="form-label">
+                                            <i class="fas fa-projector me-1 text-secondary"></i>
+                                            <span th:text="#{event.beamer.code}"></span>
+                                            <span class="text-danger ms-1">*</span>
+                                        </label>
+                                        <!-- Add name="updateBeamer" and formaction to trigger controller method -->
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="beamerCode" th:field="*{beamerCode}" 
+                                                   min="0" max="9999" required
+                                                   th:placeholder="#{event.beamer.code.placeholder}"
+                                                   th:classappend="${#fields.hasErrors('beamerCode')} ? 'is-invalid'">
+                                            <button type="submit" class="btn btn-outline-secondary" name="action" value="calculate">
+                                                <i class="fas fa-calculator"></i>
+                                            </button>
+                                        </div>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('beamerCode')}" th:errors="*{beamerCode}"></div>
+                                        <small class="form-text text-muted" th:text="#{event.beamer.code.help}"></small>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <label for="beamerCheck" class="form-label">
+                                            <i class="fas fa-check-circle me-1 text-secondary"></i>
+                                            <span th:text="#{event.beamer.check}"></span>
+                                            <span class="text-danger ms-1">*</span>
+                                        </label>
+                                        <input type="number" class="form-control" id="beamerCheck" name="beamerCheck"
+                                               th:value="${beamerCheck}" 
+                                               min="0" max="96" required readonly
+                                               th:placeholder="#{event.beamer.check.placeholder}"
+                                               th:classappend="${beamerCheckError != null} ? 'is-invalid'">
+                                        <div class="invalid-feedback" th:if="${beamerCheckError != null}" th:text="${beamerCheckError}"></div>
+                                        <small class="form-text text-muted" th:text="#{event.beamer.check.help}"></small>
+                                    </div>
                                 </div>
-
                          
                                 <div class="mb-3">
                                     <label class="form-label">
@@ -134,44 +163,44 @@
                                         <span class="text-danger ms-1">*</span>
                                     </label>
                                     <small class="form-text text-muted d-block mb-2" th:text="#{event.speakers.help}"></small>
-
                                 
-                                    <div class="input-group mb-2">
-                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                        <select name="speaker1Id" class="form-select">
-                                            <option th:value=-1 th:text="#{event.speaker.select}"></option>
-                                            <option th:each="sp : ${allSpeakers}" 
-                                                    th:value="${sp.id}" 
-                                                    th:text="${sp.name}"
-                                                    th:selected="${speaker1 != null} ? ${sp.id} == ${speaker1.id} : false">
-                                            </option>
-                                        </select>
-                                    </div>
+                               <div class="input-group mb-2">
+    <span class="input-group-text"><i class="fas fa-user"></i></span>
+    <select name="speaker1Id" id="speaker1Id" class="form-select" 
+            th:classappend="${speakerError != null} ? 'is-invalid'">
+        <option th:value=-1 th:text="#{event.speaker.select}"></option>
+        <option th:each="sp : ${allSpeakers}" 
+                th:value="${sp.id}" 
+                th:text="${sp.name}"
+                th:selected="${speaker1Id != null ? sp.id == speaker1Id : (speaker1 != null ? sp.id == speaker1.id : false)}">
+        </option>
+    </select>
+</div>
 
-                                
-                                    <div class="input-group mb-2">
-                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                        <select name="speaker2Id" class="form-select">
-                                            <option th:value=-1 th:text="#{event.speaker.select}"></option>
-                                            <option th:each="sp : ${allSpeakers}" 
-                                                    th:value="${sp.id}" 
-                                                    th:text="${sp.name}"
-                                                    th:selected="${speaker2 != null} ? ${sp.id} == ${speaker2.id} : false">
-                                            </option>
-                                        </select>
-                                    </div>
+<div class="input-group mb-2">
+    <span class="input-group-text"><i class="fas fa-user"></i></span>
+    <select name="speaker2Id" id="speaker2Id" class="form-select">
+        <option th:value=-1 th:text="#{event.speaker.select}"></option>
+        <option th:each="sp : ${allSpeakers}" 
+                th:value="${sp.id}" 
+                th:text="${sp.name}"
+                th:selected="${speaker2Id != null ? sp.id == speaker2Id : (speaker2 != null ? sp.id == speaker2.id : false)}">
+        </option>
+    </select>
+</div>
 
-                                    <div class="input-group mb-2">
-                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                        <select name="speaker3Id" class="form-select">
-                                            <option th:value=-1 th:text="#{event.speaker.select}"></option>
-                                            <option th:each="sp : ${allSpeakers}" 
-                                                    th:value="${sp.id}" 
-                                                    th:text="${sp.name}"
-                                                    th:selected="${speaker3 != null} ? ${sp.id} == ${speaker3.id} : false">
-                                            </option>
-                                        </select>
-                                    </div>
+<div class="input-group mb-2">
+    <span class="input-group-text"><i class="fas fa-user"></i></span>
+    <select name="speaker3Id" id="speaker3Id" class="form-select">
+        <option th:value=-1 th:text="#{event.speaker.select}"></option>
+        <option th:each="sp : ${allSpeakers}" 
+                th:value="${sp.id}" 
+                th:text="${sp.name}"
+                th:selected="${speaker3Id != null ? sp.id == speaker3Id : (speaker3 != null ? sp.id == speaker3.id : false)}">
+        </option>
+    </select>
+</div>
+                                    <div class="invalid-feedback" th:if="${speakerError != null}" th:text="#{error.speaker.required}"></div>
                                 </div>
 
                       
@@ -185,12 +214,11 @@
 
                          
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-
                                     <a th:href="@{/admin/events}" class="btn btn-secondary me-md-2">
                                         <i class="fas fa-times me-1"></i>
                                         <span th:text="#{event.cancel.button}"></span>
                                     </a>
-                                    <button type="submit"  class="btn btn-primary">
+                                    <button type="submit" class="btn btn-primary" name="action" value="save">
                                         <i class="fas fa-save me-1"></i>
                                         <span th:if="${event.id == null}" th:text="#{event.create.button}"></span>
                                         <span th:unless="${event.id == null}" th:text="#{event.update.button}"></span>

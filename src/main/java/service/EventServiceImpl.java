@@ -169,7 +169,6 @@ public class EventServiceImpl implements EventService {
 		return !eventRepository.existsByNameAndDateTime(name, date);
 	}
 
-	// Validation that throws exceptions (used internally)
 	private void validateEventThrow(Event event) {
 		if (event.getBeamerCheck() != event.getBeamerCode() % 97) {
 			throw new IllegalArgumentException("Invalid beamer check code");
@@ -206,10 +205,6 @@ public class EventServiceImpl implements EventService {
 		}
 	}
 
-	/**
-	 * New: Validate event but add errors to BindingResult instead of throwing
-	 * exceptions.
-	 */
 	@Override
 	public void validateEvent(Event event, BindingResult result) {
 		if (event == null) {
@@ -234,10 +229,6 @@ public class EventServiceImpl implements EventService {
 		}
 	}
 
-	/**
-	 * New: Setup method to prepare Event for form add or edit. If id is null,
-	 * returns new Event. If id present, loads from DB or throws if not found.
-	 */
 	@Override
 	public Event setupAddEventWithDefaults(Long eventId, Event event) {
 		if (event != null) {
@@ -249,17 +240,11 @@ public class EventServiceImpl implements EventService {
 		return new Event(); // default new event
 	}
 
-	/**
-	 * New: Setup method to fetch all rooms for the form.
-	 */
 	@Override
 	public List<Room> setupRooms() {
 		return roomRepository.findAll();
 	}
 
-	/**
-	 * New: Setup method to fetch all speakers for the form.
-	 */
 	@Override
 	public List<Speaker> setupSpeakers() {
 		return speakerRepository.findAll();
@@ -300,5 +285,22 @@ public class EventServiceImpl implements EventService {
 		}
 
 		return filteredEvents;
+	}
+
+	@Override
+	public boolean existsByNameAndDate(String name, LocalDate date) {
+		return eventRepository.findAll().stream()
+				.anyMatch(e -> e.getName().equals(name) && e.getDateTime().toLocalDate().equals(date));
+	}
+
+	@Override
+	public boolean existsByNameAndDateExcludingId(String name, LocalDate date, Long eventId) {
+		// Find all events on this date
+		List<Event> eventsOnDate = eventRepository.findByDateTimeBetween(date.atStartOfDay(),
+				date.plusDays(1).atStartOfDay().minusNanos(1));
+
+		// Check if any other event has the same name (case insensitive)
+		return eventsOnDate.stream().filter(e -> !e.getId().equals(eventId)) // Exclude current event
+				.anyMatch(e -> e.getName().equalsIgnoreCase(name));
 	}
 }

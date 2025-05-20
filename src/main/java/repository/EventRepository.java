@@ -32,4 +32,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	boolean existsByNameAndDateTime(@Param("name") String name, @Param("date") LocalDateTime date);
 
 	List<Event> findAllByOrderByDateTimeAsc();
+
+	List<Event> findByDateTimeBetween(LocalDateTime atStartOfDay, LocalDateTime minusNanos);
 }

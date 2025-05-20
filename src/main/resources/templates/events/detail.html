@@ -22,13 +22,13 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-8">
-                        <!-- Event description section -->
+             
                         <div class="mb-4">
                             <h4 class="text-primary mb-3" th:text="#{event.description}"></h4>
                             <p class="lead" th:text="${event.description}"></p>
                         </div>
                         
-                        <!-- Speakers section with improved styling -->
+             
                         <div class="mb-4">
                             <h4 class="text-primary mb-3" th:text="#{event.speakers}"></h4>
                             <ul class="list-group list-group-flush">
@@ -39,7 +39,7 @@
                             </ul>
                         </div>
                         
-                        <!-- Event details section with improved styling -->
+              
                         <div>
                             <h4 class="text-primary mb-3" th:text="#{event.details}"></h4>
                             <dl class="row">
@@ -72,34 +72,64 @@
                         </div>
                     </div>
                     
-               
-                    <div class="col-md-4" sec:authorize="hasRole('USER')">
-                        <div class="mb-3">
-                   
-                            <div th:if="${isFavorite}" class="mb-3">
-                                <form th:action="@{/events/{id}/unfavorite(id=${event.id})}" method="post">
-                                    <button type="submit" class="btn btn-danger btn-block w-100">
-                                        <i class="fas fa-star me-1"></i> <span th:text="#{favorite.remove.button}"></span>
-                                    </button>
-                                </form>
+                    <div class="col-md-4">
+              
+                        <div sec:authorize="hasRole('ADMIN')" class="mb-4">
+                            <div class="card border-left-primary shadow h-100 py-2">
+                                <div class="card-body">
+                                    <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
+                                    <div class="d-grid gap-2">
+                                        <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn btn-warning w-100">
+                                            <i class="fas fa-edit me-1"></i> <span th:text="#{event.edit.button}"></span>
+                                        </a>
+                                        <a th:href="@{/events/{id}/confirm(id=${event.id})}" class="btn btn-danger w-100">
+                                            <i class="fas fa-trash-alt me-1"></i> <span th:text="#{event.delete.button}"></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                       
+            
+                        <div sec:authorize="hasRole('USER')" class="mb-3">
+                            <div class="card border-left-primary shadow h-100 py-2" th:if="${isFavorite || canAddToFavorites}">
+                                <div class="card-body">
+                                    <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
+                         
+                                    <div th:if="${isFavorite}" class="mb-3">
+                                        <form th:action="@{/events/{id}/unfavorite(id=${event.id})}" method="post">
+                                            <button type="submit" class="btn btn-danger btn-block w-100">
+                                                <i class="fas fa-star me-1"></i> <span th:text="#{favorite.remove.button}"></span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    
+                 
+                                    <div th:if="${!isFavorite && canAddToFavorites}" class="mb-3">
+                                        <form th:action="@{/events/{id}/favorite(id=${event.id})}" method="post">
+                                            <button type="submit" class="btn btn-primary btn-block w-100">
+                                                <i class="far fa-star me-1"></i> <span th:text="#{favorite.add.button}"></span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                             
-                      
-                            <div th:if="${!isFavorite && canAddToFavorites}" class="mb-3">
-                                <form th:action="@{/events/{id}/favorite(id=${event.id})}" method="post">
-                                    <button type="submit" class="btn btn-primary btn-block w-100">
-                                        <i class="far fa-star me-1"></i> <span th:text="#{favorite.add.button}"></span>
-                                    </button>
-                                </form>
-                            </div>
-                            
-                    
+   
                             <div th:if="${!isFavorite && !canAddToFavorites}" class="alert alert-warning">
                                 <p class="small mb-2" th:text="#{favorite.limit.reached}"></p>
                                 <a th:href="@{/user/favorites}" class="btn btn-sm btn-outline-primary w-100">
                                     <i class="fas fa-cog me-1"></i> <span th:text="#{favorite.manage.button}"></span>
                                 </a>
                             </div>
+                        </div>
+
+             
+                        <div sec:authorize="isAnonymous()" class="alert alert-info">
+                            <p class="small mb-2" th:text="#{login.required.favorites}"></p>
+                            <a th:href="@{/login}" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="fas fa-sign-in-alt me-1"></i> <span th:text="#{login.button}"></span>
+                            </a>
                         </div>
                     </div>
                 </div>

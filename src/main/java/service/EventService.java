@@ -1,5 +1,6 @@
 package service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -56,4 +57,8 @@ public interface EventService {
 	List<Room> setupRooms();
 
 	List<Speaker> setupSpeakers();
+
+	boolean existsByNameAndDate(String name, LocalDate eventDate);
+
+	boolean existsByNameAndDateExcludingId(String name, LocalDate date, Long eventId);
 }

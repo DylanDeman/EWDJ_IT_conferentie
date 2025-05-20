@@ -22,8 +22,8 @@ import service.SpeakerServiceImpl;
 import service.UserDetailsServiceImpl;
 import service.UserService;
 import service.UserServiceImpl;
-import validation.BeamerCheckValidator;
 import validation.ConferencePeriodValidator;
+import validation.EventValidator;
 
 @SpringBootApplication
 @EnableJpaRepositories("repository")
@@ -85,13 +85,13 @@ public class ITConferenceApplication implements WebMvcConfigurer {
 	}
 
 	@Bean
-	BeamerCheckValidator BeamerCheckValidator() {
-		return new BeamerCheckValidator();
+	HiddenHttpMethodFilter hiddenHttpMethodFilter() {
+		return new HiddenHttpMethodFilter();
 	}
 
 	@Bean
-	HiddenHttpMethodFilter hiddenHttpMethodFilter() {
-		return new HiddenHttpMethodFilter();
+	EventValidator EventValidator() {
+		return new EventValidator();
 	}
 
 }
