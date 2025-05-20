@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -22,6 +23,7 @@ import domain.Event;
 import domain.MyUser;
 import domain.Room;
 import domain.Speaker;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import service.EventService;
 import service.RoomService;
@@ -65,12 +67,20 @@ public class EventController {
 	}
 
 	@GetMapping("/{id}")
-	public String viewEvent(@PathVariable Long id, Model model, @AuthenticationPrincipal UserDetails userDetails) {
+	public String viewEvent(@PathVariable Long id, Model model, HttpSession session,
+			@AuthenticationPrincipal UserDetails userDetails) {
 		try {
 			Event event = eventService.getEventById(id)
 					.orElseThrow(() -> new IllegalArgumentException("Invalid event id: " + id));
 
 			model.addAttribute("event", event);
+
+			if (userDetails != null && isAdmin(userDetails.getUsername())) {
+				String returnUrl = (String) session.getAttribute("adminEventsUrl");
+				if (returnUrl != null) {
+					model.addAttribute("returnUrl", returnUrl);
+				}
+			}
 
 			if (userDetails != null) {
 				MyUser user = userService.findByUsername(userDetails.getUsername());
@@ -126,7 +136,7 @@ public class EventController {
 		try {
 			eventService.createEvent(event);
 			redirectAttributes.addFlashAttribute("message", "Event created successfully");
-			return "redirect:/events";
+			return "redirect:/admin/events";
 		} catch (Exception e) {
 			result.rejectValue(null, null, e.getMessage());
 			populateModelForForm(model);
@@ -135,12 +145,16 @@ public class EventController {
 		}
 	}
 
-	// EDIT EVENT
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/{id}/edit")
-	public String showEditEventForm(@PathVariable Long id, Model model) {
+	public String showEditEventForm(@PathVariable Long id, Model model, HttpSession session) {
 		Event event = eventService.getEventById(id)
 				.orElseThrow(() -> new IllegalArgumentException("Invalid event id: " + id));
+
+		String returnUrl = (String) session.getAttribute("adminEventsUrl");
+		if (returnUrl != null) {
+			model.addAttribute("returnUrl", returnUrl);
+		}
 
 		if (event.getSpeakers() == null) {
 			event.setSpeakers(new ArrayList<>());
@@ -153,7 +167,7 @@ public class EventController {
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
-	@PostMapping("/{id}/edit")
+	@PutMapping("/{id}/edit")
 	public String editEvent(@PathVariable Long id, @Valid @ModelAttribute Event event, BindingResult result,
 			@RequestParam Long roomId, @RequestParam(required = false) Long speaker1Id,
 			@RequestParam(required = false) Long speaker2Id, @RequestParam(required = false) Long speaker3Id,
@@ -185,7 +199,7 @@ public class EventController {
 		try {
 			eventService.updateEvent(id, event);
 			redirectAttributes.addFlashAttribute("message", "Event updated successfully");
-			return "redirect:/events";
+			return "redirect:/admin/events";
 		} catch (Exception e) {
 			result.rejectValue("", "", e.getMessage());
 			populateModelForForm(model);
@@ -242,5 +256,26 @@ public class EventController {
 				speakers.add(s3);
 		}
 		event.setSpeakers(speakers);
+	}
+
+	@PreAuthorize("hasRole('ADMIN')")
+	@GetMapping("/{id}/confirm")
+	public String confirmDeleteEvent(@PathVariable Long id, Model model, HttpSession session) {
+		try {
+			Event event = eventService.getEventById(id)
+					.orElseThrow(() -> new IllegalArgumentException("Invalid event id: " + id));
+
+			model.addAttribute("event", event);
+
+			String returnUrl = (String) session.getAttribute("adminEventsUrl");
+			if (returnUrl != null) {
+				model.addAttribute("returnUrl", returnUrl);
+			}
+
+			return "events/confirm-delete";
+		} catch (Exception e) {
+			model.addAttribute("error", "Error retrieving event: " + e.getMessage());
+			return "error";
+		}
 	}
 }

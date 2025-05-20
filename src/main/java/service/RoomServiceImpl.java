@@ -61,16 +61,6 @@ public class RoomServiceImpl implements RoomService {
 	}
 
 	@Override
-	public Room updateRoom(Long id, Room room) {
-		Room existingRoom = roomRepository.findById(id)
-				.orElseThrow(() -> new EntityNotFoundException("Room not found"));
-
-		validateRoom(room);
-		room.setId(id);
-		return roomRepository.save(room);
-	}
-
-	@Override
 	public void deleteRoom(Long id) {
 		roomRepository.deleteById(id);
 	}

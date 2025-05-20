@@ -21,8 +21,6 @@ public interface RoomService {
 
 	Room createRoom(Room room);
 
-	Room updateRoom(Long id, Room room);
-
 	void deleteRoom(Long id);
 
 	boolean existsByName(String name);

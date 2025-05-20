@@ -23,19 +23,20 @@
             </div>
         </div>
 
-        <!-- System message for success/error -->
-        <div th:if="${message}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <span th:text="${message}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
 
-        <!-- Filters -->
+<div th:if="${message}" class="alert alert-success mb-4" role="alert">
+    <i class="fas fa-check-circle me-2"></i>
+    <span th:text="${message}"></span>
+    <a th:href="@{/rooms}" class="float-end text-decoration-none">×</a>
+</div>
+
+<div th:if="${error}" class="alert alert-danger mb-4" role="alert">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span th:text="${error}"></span>
+    <a th:href="@{/rooms}" class="float-end text-decoration-none">×</a>
+</div>
+
+   
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-light py-3">
                 <h5 class="mb-0 text-primary">
@@ -51,15 +52,6 @@
                             <span class="input-group-text"><i class="fas fa-users"></i></span>
                             <input type="number" class="form-control" id="capacity" name="capacity" 
                                    th:value="${capacityFilter}" min="1" th:placeholder="#{room.capacity.placeholder}"
-                                   onchange="this.form.submit();">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="search" class="form-label" th:text="#{room.filter.search}"></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-search"></i></span>
-                            <input type="text" class="form-control" id="search" name="search" 
-                                   th:value="${searchFilter}" th:placeholder="#{room.search.placeholder}"
                                    onchange="this.form.submit();">
                         </div>
                     </div>
@@ -91,7 +83,7 @@
             </div>
         </div>
 
-        <!-- Results info -->
+ 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <span class="badge bg-primary me-2" th:text="${rooms.size()}"></span>
@@ -99,14 +91,14 @@
             </div>
         </div>
 
-        <!-- Rooms List -->
+
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
             <div th:each="room : ${rooms}" class="col">
                 <div class="card h-100 shadow-sm hover-shadow">
                     <div class="card-body">
                         <h5 class="card-title text-primary">
                             <i class="fas fa-door-open me-2"></i>
-                            <!-- Highlight matching text if search filter is active -->
+                     
                             <span th:if="${searchFilter != null and !searchFilter.isEmpty()}" 
                                   th:utext="${#strings.replace(room.name.toLowerCase(), searchFilter.toLowerCase(), 
                                             '<span class=\'highlight\'>' + searchFilter.toLowerCase() + '</span>')}">
@@ -138,23 +130,16 @@
                     </div>
                     <div class="card-footer bg-white border-top-0 pt-0">
                         <div class="d-flex justify-content-between align-items-center">
-                            <a th:href="@{/rooms/{id}(id=${room.id})}" class="btn btn-primary">
-                                <i class="fas fa-info-circle me-1"></i>
-                                <span th:text="#{room.details.button}">s</span>
-                            </a>
                             <div sec:authorize="hasRole('ADMIN')" class="btn-group">
-                                <a th:href="@{/rooms/{id}/edit(id=${room.id})}" class="btn btn-warning">
-                                    <i class="fas fa-edit me-1"></i>
-                                    <span th:text="#{room.edit.button}"></span>
+                                <!-- Use a separate page for confirmation -->
+                                <a th:href="@{/rooms/{id}/confirm(id=${room.id},
+                                                capacity=${capacityFilter},
+                                                search=${searchFilter},
+                                                sort=${sortFilter})}" 
+                                   class="btn btn-danger">
+                                    <i class="fas fa-trash-alt me-1"></i>
+                                    <span th:text="#{room.delete.button}"></span>
                                 </a>
-                                <form th:action="@{/rooms/{id}/delete(id=${room.id})}" method="post" 
-                                      style="display: inline;">
-                                    <button type="submit" class="btn btn-danger"
-                                            th:onclick="'return confirm(\'' + #{room.delete.confirm} + '\');'">
-                                        <i class="fas fa-trash-alt me-1"></i>
-                                        <span th:text="#{room.delete.button}"></span>
-                                    </button>
-                                </form>
                             </div>
                         </div>
                     </div>
@@ -162,7 +147,7 @@
             </div>
         </div>
 
-        <!-- Empty State -->
+  
         <div th:if="${#lists.isEmpty(rooms)}" class="text-center mt-4 p-5 bg-light rounded shadow-sm">
             <i class="fas fa-door-closed fa-4x text-muted mb-3"></i>
             <p class="lead" th:if="${searchFilter != null and !searchFilter.isEmpty()}" th:text="#{room.search.empty}">
@@ -177,7 +162,5 @@
             </a>
         </div>
     </div>
-
-
 </body>
 </html>

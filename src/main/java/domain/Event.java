@@ -21,6 +21,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -60,6 +61,7 @@ public class Event implements Serializable {
 	@Column(nullable = false)
 	private int beamerCheck;
 
+	@Getter
 	@Column(nullable = false)
 	private BigDecimal price;
 }

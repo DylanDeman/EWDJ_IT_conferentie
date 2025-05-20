@@ -83,7 +83,7 @@ public class RoomController {
 		return "rooms/form";
 	}
 
-	@PostMapping
+	@PostMapping("/new")
 	public String createRoom(@Valid @ModelAttribute Room room, BindingResult result,
 			RedirectAttributes redirectAttributes) {
 		if (result.hasErrors()) {
@@ -96,53 +96,24 @@ public class RoomController {
 			redirectAttributes.addFlashAttribute("message", message);
 			return "redirect:/rooms";
 		} catch (Exception e) {
-			result.rejectValue("", "", e.getMessage());
-			return "rooms/form";
-		}
-	}
-
-	@GetMapping("/{id}")
-	public String viewRoom(@PathVariable Long id, Model model) {
-		Room room = roomService.getRoomById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Invalid room id: " + id));
-		model.addAttribute("room", room);
-		return "rooms/view";
-	}
-
-	@GetMapping("/{id}/edit")
-	public String showEditForm(@PathVariable Long id, Model model) {
-		Room room = roomService.getRoomById(id)
-				.orElseThrow(() -> new IllegalArgumentException("Invalid room id: " + id));
-		model.addAttribute("room", room);
-		return "rooms/form";
-	}
-
-	@PostMapping("/{id}")
-	public String updateRoom(@PathVariable Long id, @Valid @ModelAttribute Room room, BindingResult result,
-			RedirectAttributes redirectAttributes) {
-		if (result.hasErrors()) {
-			return "rooms/form";
-		}
-		try {
-			roomService.updateRoom(id, room);
-			redirectAttributes.addFlashAttribute("message", "Room updated successfully");
-			return "redirect:/rooms";
-		} catch (Exception e) {
-			result.rejectValue("", "", e.getMessage());
+			result.rejectValue("name", "error.room", e.getMessage());
 			return "rooms/form";
 		}
 	}
 
 	@PostMapping("/{id}/delete")
-	public String deleteRoom(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+	public String deleteRoom(@PathVariable Long id, @RequestParam(required = false) Integer capacity,
+			@RequestParam(required = false) String search,
+			@RequestParam(required = false, defaultValue = "name") String sort, RedirectAttributes redirectAttributes) {
 		try {
 			Room room = roomService.getRoomById(id)
 					.orElseThrow(() -> new IllegalArgumentException("Invalid room id: " + id));
 
 			// Check if room has scheduled events
 			if (!room.getEvents().isEmpty()) {
-				redirectAttributes.addFlashAttribute("error",
-						"Cannot delete room. It has " + room.getEvents().size() + " scheduled events.");
+				String errorMsg = messageSource.getMessage("room.delete.events",
+						new Object[] { room.getEvents().size() }, LocaleContextHolder.getLocale());
+				redirectAttributes.addFlashAttribute("error", errorMsg);
 				return "redirect:/rooms";
 			}
 
@@ -154,6 +125,47 @@ public class RoomController {
 		} catch (Exception e) {
 			redirectAttributes.addFlashAttribute("error", "Error deleting room: " + e.getMessage());
 		}
-		return "redirect:/rooms";
+
+		// Keep filter parameters in the redirect
+		String redirect = "redirect:/rooms";
+		boolean hasParams = false;
+
+		if (capacity != null) {
+			redirect += hasParams ? "&capacity=" + capacity : "?capacity=" + capacity;
+			hasParams = true;
+		}
+
+		if (search != null && !search.isEmpty()) {
+			redirect += hasParams ? "&search=" + search : "?search=" + search;
+			hasParams = true;
+		}
+
+		if (sort != null) {
+			redirect += hasParams ? "&sort=" + sort : "?sort=" + sort;
+		}
+
+		return redirect;
+	}
+
+	@GetMapping("/{id}/confirm")
+	public String confirmDelete(@PathVariable Long id, Model model, @RequestParam(required = false) Integer capacity,
+			@RequestParam(required = false) String search,
+			@RequestParam(required = false, defaultValue = "name") String sort) {
+
+		Room room = roomService.getRoomById(id)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid room id: " + id));
+
+		model.addAttribute("room", room);
+
+		// Keep filter parameters
+		if (capacity != null) {
+			model.addAttribute("capacityFilter", capacity);
+		}
+		if (search != null) {
+			model.addAttribute("searchFilter", search);
+		}
+		model.addAttribute("sortFilter", sort);
+
+		return "rooms/confirm-delete";
 	}
 }

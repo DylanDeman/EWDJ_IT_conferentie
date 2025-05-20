@@ -12,11 +12,6 @@
         <div class="col">
             <h1 class="h3 text-gray-800" th:text="#{event.list.title}"></h1>
         </div>
-        <div class="col-auto" sec:authorize="hasRole('ADMIN')">
-            <a th:href="@{/events/new}" class="btn btn-primary">
-                <i class="fas fa-plus me-1"></i> <span th:text="#{event.create.button}"></span>
-            </a>
-        </div>
     </div>
 
 
@@ -43,7 +38,7 @@
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
                         <select class="form-select" id="room" name="room" onchange="this.form.submit();">
-                            <option value=""></option>
+                            <option th:text=#{room.filter.all} value=""></option>
                             <option th:each="room : ${rooms}"
                                     th:value="${room.id}"
                                     th:text="${room.name}"
@@ -120,23 +115,18 @@
                         <span th:text="${#numbers.formatCurrency(event.price)}"></span>
                     </p>
                 </div>
-
-				<div sec:authorize="isAuthenticated()">
-                <div  class="card-footer bg-white border-top-0 pt-0">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a th:href="@{/events/{id}(id=${event.id})}" class="btn btn-primary">
-                            <i  class="fas fa-info-circle me-1"></i> <span  th:text="#{event.details.button}"></span>
-                        </a>
-                        </div>
-                  
-                        <div sec:authorize="isAuthenticated()">
-                            <span th:if="${userFavorites != null && userFavorites.contains(event)}" 
-                                  class="badge bg-warning text-dark" title="In your favorites">
-                                <i class="fas fa-star"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
+<div class="card-footer bg-white border-top-0 pt-0" sec:authorize="isAuthenticated()">
+    <div class="d-flex justify-content-between align-items-center">
+        <a th:href="@{/events/{id}(id=${event.id})}" class="btn btn-primary">
+            <i class="fas fa-info-circle me-1"></i> <span th:text="#{event.details.button}"></span>
+        </a>
+        
+        <span th:if="${userFavorites != null && userFavorites.contains(event)}" 
+              class="badge bg-warning text-dark" title="In your favorites">
+            <i class="fas fa-star"></i>
+        </span>
+    </div>
+</div>
             </div>
         </div>
     </div>

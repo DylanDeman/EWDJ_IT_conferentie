@@ -48,10 +48,6 @@ public class ITConferenceApplication implements WebMvcConfigurer {
 		return slr;
 	}
 
-	/*
-	 * @Bean DateFormatter dateFormatter() { return new DateFormatter(); }
-	 */
-
 	/* SERVICE */
 	@Bean
 	UserService UserService() {

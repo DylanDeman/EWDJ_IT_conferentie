@@ -8,14 +8,12 @@
     <div th:replace="layout/base :: nav"></div>
 
     <div class="container mt-4">
-        <!-- Back button at top left -->
         <div class="mb-3">
-            <a th:href="@{/events}" class="btn btn-outline-secondary">
+            <a th:href="${returnUrl != null ? returnUrl : '/events'}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left me-1"></i> <span th:text="#{event.back.button}"></span>
             </a>
         </div>
         
-        <!-- Main event card with improved styling -->
         <div class="card shadow-sm">
             <div class="card-header bg-light py-3">
                 <h1 class="h3 mb-0 text-gray-800" th:text="${event.name}"></h1>
@@ -74,65 +72,33 @@
                         </div>
                     </div>
                     
-                    <!-- Unified actions card with improved styling -->
-                    <div class="col-md-4">
-                        <div class="card border-left-primary shadow h-100 py-2">
-                            <div class="card-body">
-                                <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
-                                
-                                <!-- Admin actions section -->
-                                <div sec:authorize="hasRole('ADMIN')" class="mb-4">
-                                    <h6 class="text-muted mb-2"></h6>
-                                    <div class="d-grid gap-2">
-                                        <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn btn-warning w-100">
-                                           <i class="fas fa-edit me-1"></i> <span th:text="#{event.edit.button}"></span>
-                                        </a>
-                                        <form th:action="@{/events/{id}/delete(id=${event.id})}" method="post">
-                                            <button type="submit" class="btn btn-danger w-100"
-                                                    th:onclick="'return confirm(\'' + #{event.delete.confirm} + '\');'">
-                                                <i class="fas fa-trash-alt me-1"></i> <span th:text="#{event.delete.button}"></span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                    <hr class="my-3" />
-                                </div>
-                                
-                                <!-- User favorite actions -->
-                                <div sec:authorize="hasRole('USER')">
-                                    <!-- If already a favorite, show Remove button -->
-                                    <div th:if="${isFavorite}" class="mb-3">
-                                        <form th:action="@{/events/{id}/unfavorite(id=${event.id})}" method="post">
-                                            <button type="submit" class="btn btn-danger btn-block w-100">
-                                                <i class="fas fa-star me-1"></i> <span th:text="#{favorite.remove.button}"></span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                    
-                                    <!-- If not a favorite and user hasn't reached limit, show Add button -->
-                                    <div th:if="${!isFavorite && canAddToFavorites}" class="mb-3">
-                                        <form th:action="@{/events/{id}/favorite(id=${event.id})}" method="post">
-                                            <button type="submit" class="btn btn-primary btn-block w-100">
-                                                <i class="far fa-star me-1"></i> <span th:text="#{favorite.add.button}"></span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                    
-                                    <!-- If not a favorite and user has reached limit, show message -->
-                                    <div th:if="${!isFavorite && !canAddToFavorites}" class="alert alert-warning">
-                                        <p class="small mb-2" th:text="#{favorite.limit.reached}"></p>
-                                        <a th:href="@{/user/favorites}" class="btn btn-sm btn-outline-primary w-100">
-                                            <i class="fas fa-cog me-1"></i> <span th:text="#{favorite.manage.button}"></span>
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <!-- Anonymous users see login prompt -->
-                                <div sec:authorize="isAnonymous()" class="alert alert-info">
-                                    <p class="small mb-2" th:text="#{login.required.favorites}"></p>
-                                    <a th:href="@{/login}" class="btn btn-sm btn-outline-primary w-100">
-                                        <i class="fas fa-sign-in-alt me-1"></i> <span th:text="#{login.button}"></span>
-                                    </a>
-                                </div>
+               
+                    <div class="col-md-4" sec:authorize="hasRole('USER')">
+                        <div class="mb-3">
+                   
+                            <div th:if="${isFavorite}" class="mb-3">
+                                <form th:action="@{/events/{id}/unfavorite(id=${event.id})}" method="post">
+                                    <button type="submit" class="btn btn-danger btn-block w-100">
+                                        <i class="fas fa-star me-1"></i> <span th:text="#{favorite.remove.button}"></span>
+                                    </button>
+                                </form>
+                            </div>
+                            
+                      
+                            <div th:if="${!isFavorite && canAddToFavorites}" class="mb-3">
+                                <form th:action="@{/events/{id}/favorite(id=${event.id})}" method="post">
+                                    <button type="submit" class="btn btn-primary btn-block w-100">
+                                        <i class="far fa-star me-1"></i> <span th:text="#{favorite.add.button}"></span>
+                                    </button>
+                                </form>
+                            </div>
+                            
+                    
+                            <div th:if="${!isFavorite && !canAddToFavorites}" class="alert alert-warning">
+                                <p class="small mb-2" th:text="#{favorite.limit.reached}"></p>
+                                <a th:href="@{/user/favorites}" class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="fas fa-cog me-1"></i> <span th:text="#{favorite.manage.button}"></span>
+                                </a>
                             </div>
                         </div>
                     </div>
