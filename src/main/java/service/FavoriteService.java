@@ -1,10 +1,11 @@
 package service;
 
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import org.springframework.transaction.annotation.Transactional;
+
 
 public interface FavoriteService {
-	String processAddToFavorites(Long eventId, UserDetails userDetails, RedirectAttributes redirectAttributes);
-
-	String processRemoveFromFavorites(Long eventId, UserDetails userDetails, RedirectAttributes redirectAttributes);
+    // Add the toggleFavorite method to the interface
+    @Transactional
+    void toggleFavorite(Long eventId, String username);
 }

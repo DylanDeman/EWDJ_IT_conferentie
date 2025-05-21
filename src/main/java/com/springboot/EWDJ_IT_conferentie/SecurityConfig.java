@@ -28,10 +28,9 @@ public class SecurityConfig {
 
 		http.csrf(csrf -> csrf.csrfTokenRepository(new HttpSessionCsrfTokenRepository()));
 
-		http.authorizeHttpRequests(requests -> requests
-				// Public access
-				.requestMatchers("/login**", "/css/**", "/accessdenied**").permitAll()
-				.requestMatchers("/", "/events", "/events/", "/events/{id}").permitAll()
+		http.authorizeHttpRequests(requests -> requests.requestMatchers("/login**", "/css/**", "/accessdenied**")
+				.permitAll().requestMatchers("/", "/events", "/events/", "/events/{id}").permitAll()
+				.requestMatchers("/api/events/**").permitAll()
 
 				.requestMatchers("/events/*/favorite", "/events/*/unfavorite").hasRole("USER")
 

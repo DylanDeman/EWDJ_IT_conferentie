@@ -22,12 +22,12 @@ import util.Role;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
 	@Autowired
-	private UserRepository userRepository;
+	private UserService userService;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-		MyUser user = userRepository.findByUsername(username);
+		MyUser user = userService.findByUsername(username);
 		if (user == null) {
 			throw new UsernameNotFoundException(username);
 		}

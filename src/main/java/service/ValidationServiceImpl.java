@@ -19,12 +19,17 @@ public class ValidationServiceImpl implements ValidationService {
 
 	@Override
 	public boolean isRoomAvailable(LocalDateTime dateTime, Long roomId) {
-		return !eventRepository.existsByRoomIdAndDateTime(roomId, dateTime);
+		return !eventRepository.existsByRoomIdAndDateTimeEquals(roomId, dateTime);
 	}
 
 	@Override
 	public boolean isEventNameUniqueOnDate(LocalDateTime date, String name) {
-		return !eventRepository.existsByNameAndDateTime(name, date);
+        // The current implementation incorrectly calls existsByRoomIdAndDateTimeEquals with name and date
+        // We need to implement this to actually check if an event with the given name exists on the date
+        return !eventRepository.findAll().stream()
+                .anyMatch(e -> e.getName().equalsIgnoreCase(name) && 
+                         e.getDateTime() != null && 
+                         e.getDateTime().toLocalDate().equals(date.toLocalDate()));
 	}
 
 	@Override

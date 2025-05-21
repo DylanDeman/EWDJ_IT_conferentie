@@ -1,48 +1,54 @@
 package service;
 
+import domain.Event;
+import domain.MyUser;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import repository.EventRepository;
+import repository.UserRepository;
 
 @Service
 public class FavoriteServiceImpl implements FavoriteService {
 
-	@Autowired
-	private EventService eventService;
+    @Value("${app.favorites.limit:5}")
+    private int favoritesLimit;
 
-	@Override
-	public String processAddToFavorites(Long eventId, UserDetails userDetails, RedirectAttributes redirectAttributes) {
-		if (userDetails == null) {
-			redirectAttributes.addFlashAttribute("error", "You must be logged in to add favorites.");
-			return "redirect:/login";
-		}
+    @Autowired
+    private EventRepository eventRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
 
-		try {
-			eventService.addToFavorites(eventId, userDetails.getUsername());
-			redirectAttributes.addFlashAttribute("message", "Event added to favorites");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", e.getMessage());
-		}
+    @Override
+    @Transactional
+    public void toggleFavorite(Long eventId, String username) {
+        if (eventId == null) {
+            throw new IllegalArgumentException("Event ID is required");
+        }
 
-		return "redirect:/events/" + eventId;
-	}
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found with ID: " + eventId));
 
-	@Override
-	public String processRemoveFromFavorites(Long eventId, UserDetails userDetails,
-			RedirectAttributes redirectAttributes) {
-		if (userDetails == null) {
-			redirectAttributes.addFlashAttribute("error", "You must be logged in to remove favorites.");
-			return "redirect:/login";
-		}
+        MyUser user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new EntityNotFoundException("User not found: " + username);
+        }
 
-		try {
-			eventService.removeFromFavorites(eventId, userDetails.getUsername());
-			redirectAttributes.addFlashAttribute("message", "Event removed from favorites");
-		} catch (Exception e) {
-			redirectAttributes.addFlashAttribute("error", e.getMessage());
-		}
+        boolean isFavorite = user.getFavorites().contains(event);
+        if (isFavorite) {
+            user.getFavorites().remove(event);
+        } else {
+            if (user.getFavorites().size() >= favoritesLimit) {
+                throw new IllegalStateException("You can only have " + favoritesLimit + " favorites");
+            }
+            user.getFavorites().add(event);
+        }
 
-		return "redirect:/user/favorites";
-	}
+        userRepository.save(user);
+    }
 }

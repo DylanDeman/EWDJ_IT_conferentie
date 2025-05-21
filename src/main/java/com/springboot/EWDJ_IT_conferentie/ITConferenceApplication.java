@@ -30,6 +30,7 @@ import service.UserServiceImpl;
 import service.ValidationService;
 import service.ValidationServiceImpl;
 import validation.EventValidator;
+import org.springframework.context.MessageSource;
 
 @SpringBootApplication
 @EnableJpaRepositories("repository")
@@ -102,8 +103,8 @@ public class ITConferenceApplication implements WebMvcConfigurer {
 	/* VALIDATOR */
 
 	@Bean
-	EventValidator EventValidator() {
-		return new EventValidator();
+	EventValidator eventValidator(ValidationService validationService, MessageSource messageSource) {
+		return new EventValidator(validationService, messageSource);
 	}
 
 }

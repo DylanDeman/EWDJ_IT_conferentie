@@ -6,6 +6,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,6 +30,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import util.DateTimeDeserializer;
+import util.DateTimeSerializer;
+
 
 @Entity
 @Data
@@ -43,7 +52,10 @@ public class Event implements Serializable {
 	private String description;
 
 	@ToString.Exclude
-	@ManyToMany
+	@JsonIgnoreProperties("events")
+	@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
+    @ManyToMany
 	@JoinTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"), inverseJoinColumns = @JoinColumn(name = "speaker_id"))
 	@Size(max = 3, message = "An event can have 3 speakers at most.")
 	private List<Speaker> speakers = new ArrayList<>();
@@ -51,17 +63,19 @@ public class Event implements Serializable {
 	@ToString.Exclude
 	@ManyToOne
 	@JoinColumn(name = "room_id")
+	@JsonIgnoreProperties("events")
 	private Room room;
 
 	@Column(name = "date_time")
-	private LocalDateTime dateTime;
+    @JsonDeserialize(using = DateTimeDeserializer.class)
+    @JsonSerialize(using = DateTimeSerializer.class)
+    private LocalDateTime dateTime;
 
 	private int beamerCode;
 
 	@Column(nullable = false)
 	private int beamerCheck;
 
-	@Getter
 	@Column(nullable = false)
 	private BigDecimal price;
 }

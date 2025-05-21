@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,6 +25,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = "id")
 @Table(name = "speakers")
+@JsonIgnoreProperties({"events"})
 public class Speaker implements Serializable {
 	private static final long serialVersionUID = 1L;
 

@@ -59,7 +59,7 @@ public class AdminServiceImpl implements AdminService {
 	private List<Event> getFilteredAndSortedEvents(LocalDate dateFrom, LocalDate dateTo, Long room, Double priceMax,
 			String search, String sort) {
 
-		List<Event> events = eventService.getAllEvents();
+		List<Event> events = eventService.findAll();
 
 		if (dateFrom != null) {
 			LocalDateTime fromDateTime = dateFrom.atStartOfDay();

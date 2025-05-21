@@ -13,6 +13,8 @@ public interface UserService {
 
 	List<MyUser> findAll();
 
+	MyUser save(MyUser myUser);
+
 	boolean isAdmin(String username);
 
 	List<Event> getSortedUserFavorites(String username);

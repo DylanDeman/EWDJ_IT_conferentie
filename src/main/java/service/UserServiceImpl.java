@@ -30,6 +30,11 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public MyUser save(MyUser myUser) {
+	return userRepository.save(myUser);
+	}
+
+	@Override
 	public boolean isAdmin(String username) {
 		MyUser user = findByUsername(username);
 		return user != null && user.getRole() == Role.ADMIN;

@@ -31,12 +31,15 @@
              
                         <div class="mb-4">
                             <h4 class="text-primary mb-3" th:text="#{event.speakers}"></h4>
-                            <ul class="list-group list-group-flush">
+                            <ul class="list-group list-group-flush" th:if="${event.speakers != null && !event.speakers.empty}">
                                 <li class="list-group-item ps-0 border-0" th:each="speaker : ${event.speakers}">
                                     <i class="fas fa-user-circle me-2 text-secondary"></i>
                                     <span th:text="${speaker.name}"></span>
                                 </li>
                             </ul>
+                            <p th:if="${event.speakers == null || event.speakers.empty}" class="text-muted">
+                                <i class="fas fa-info-circle me-2"></i> No speakers assigned
+                            </p>
                         </div>
                         
               
@@ -44,17 +47,23 @@
                             <h4 class="text-primary mb-3" th:text="#{event.details}"></h4>
                             <dl class="row">
                                 <dt class="col-sm-3" th:text="#{event.datetime}"></dt>
-                                <dd class="col-sm-9">
+                                <dd class="col-sm-9" th:if="${event.dateTime != null}">
                                     <i class="far fa-calendar-alt me-2 text-secondary"></i>
                                     <span th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}"></span>
                                 </dd>
+                                <dd class="col-sm-9" th:if="${event.dateTime == null}">
+                                    <span class="text-muted">Not scheduled</span>
+                                </dd>
 
                                 <dt class="col-sm-3" th:text="#{event.room}"></dt>
-                                <dd class="col-sm-9">
+                                <dd class="col-sm-9" th:if="${event.room != null}">
                                     <i class="fas fa-map-marker-alt me-2 text-secondary"></i>
                                     <span th:text="${event.room.name}"></span>
                                     (<span th:text="${event.room.capacity}"></span> 
                                     <span th:text="#{event.capacity.seats}"></span>)
+                                </dd>
+                                <dd class="col-sm-9" th:if="${event.room == null}">
+                                    <span class="text-muted">No room assigned</span>
                                 </dd>
 
                                 <dt class="col-sm-3" th:text="#{event.price}"></dt>
@@ -92,35 +101,43 @@
                        
             
                         <div sec:authorize="hasRole('USER')" class="mb-3">
-                            <div class="card border-left-primary shadow h-100 py-2" th:if="${isFavorite || canAddToFavorites}">
-                                <div class="card-body">
-                                    <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
-                         
-                                    <div th:if="${isFavorite}" class="mb-3">
-                                        <form th:action="@{/events/{id}/unfavorite(id=${event.id})}" method="post">
-                                            <button type="submit" class="btn btn-danger btn-block w-100">
-                                                <i class="fas fa-star me-1"></i> <span th:text="#{favorite.remove.button}"></span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                    
-                 
-                                    <div th:if="${!isFavorite && canAddToFavorites}" class="mb-3">
-                                        <form th:action="@{/events/{id}/favorite(id=${event.id})}" method="post">
-                                            <button type="submit" class="btn btn-primary btn-block w-100">
-                                                <i class="far fa-star me-1"></i> <span th:text="#{favorite.add.button}"></span>
-                                            </button>
-                                        </form>
+                            <!-- Check if isFavorite is provided -->
+                            <div th:if="${isFavorite != null}">
+                                <!-- If isFavorite is true or canAddToFavorites is true -->
+                                <div class="card border-left-primary shadow h-100 py-2" 
+                                     th:if="${isFavorite == true || (canAddToFavorites != null && canAddToFavorites == true)}">
+                                    <div class="card-body">
+                                        <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
+                             
+                                        <!-- If isFavorite is true -->
+                                        <div th:if="${isFavorite == true}" class="mb-3">
+                                            <form th:action="@{/events/{id}/unfavorite(id=${event.id})}" method="post">
+                                                <button type="submit" class="btn btn-danger btn-block w-100">
+                                                    <i class="fas fa-star me-1"></i> <span th:text="#{favorite.remove.button}"></span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        
+                     
+                                        <!-- If isFavorite is false and canAddToFavorites is true -->
+                                        <div th:if="${isFavorite == false && canAddToFavorites != null && canAddToFavorites == true}" class="mb-3">
+                                            <form th:action="@{/events/{id}/favorite(id=${event.id})}" method="post">
+                                                <button type="submit" class="btn btn-primary btn-block w-100">
+                                                    <i class="far fa-star me-1"></i> <span th:text="#{favorite.add.button}"></span>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-   
-                            <div th:if="${!isFavorite && !canAddToFavorites}" class="alert alert-warning">
-                                <p class="small mb-2" th:text="#{favorite.limit.reached}"></p>
-                                <a th:href="@{/user/favorites}" class="btn btn-sm btn-outline-primary w-100">
-                                    <i class="fas fa-cog me-1"></i> <span th:text="#{favorite.manage.button}"></span>
-                                </a>
+                                
+       
+                                <!-- If isFavorite is false and canAddToFavorites is false -->
+                                <div th:if="${isFavorite == false && canAddToFavorites != null && canAddToFavorites == false}" class="alert alert-warning">
+                                    <p class="small mb-2" th:text="#{favorite.limit.reached}"></p>
+                                    <a th:href="@{/user/favorites}" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="fas fa-cog me-1"></i> <span th:text="#{favorite.manage.button}"></span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
