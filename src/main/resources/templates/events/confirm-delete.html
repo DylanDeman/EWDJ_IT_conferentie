@@ -1,75 +1,75 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org"
+>
 <head th:replace="layout/base :: head">
     <title th:text="#{event.delete.confirm.title} + ' - ' + #{app.name}"></title>
 </head>
 <body>
-    <div th:replace="layout/base :: nav"></div>
+<div th:replace="layout/base :: nav"></div>
 
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow border-danger">
-                    <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <span></span>
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-3" th:text="#{event.delete.confirm}"></p>
-                        
-                        <div class="alert alert-warning">
-                            <h5 class="text-danger" th:text="${event.name}"></h5>
-                            <dl class="row mb-0">
-                                <dt class="col-sm-4">
-                                    <i class="far fa-calendar-alt me-2 text-secondary"></i>
-                                    <span th:text="#{event.datetime}"></span>
-                                </dt>
-                                <dd class="col-sm-8">
-                                    <span th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}"></span>
-                                </dd>
-                                
-                                <dt class="col-sm-4">
-                                    <i class="fas fa-map-marker-alt me-2 text-secondary"></i>
-                                    <span th:text="#{event.room}"></span>
-                                </dt>
-                                <dd class="col-sm-8">
-                                    <span th:text="${event.room.name}"></span>
-                                </dd>
-                                
-                                <dt class="col-sm-4">
-                                    <i class="fas fa-users me-2 text-secondary"></i>
-                                    <span th:text="#{event.speakers}"></span>
-                                </dt>
-                                <dd class="col-sm-8">
-                                    <span th:text="${#strings.listJoin(event.speakers.![name], ', ')}"></span>
-                                </dd>
-                            </dl>
-                        </div>
-                        
-                        <div th:if="${hasFavorites}" class="alert alert-danger mt-3">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            <span th:text="#{event.delete.hasFavorites(${favoriteCount})}"></span>
-                        </div>
-                    </div>
-                    <div class="card-footer d-flex justify-content-between">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span></span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3" th:text="#{event.delete.confirm}"></p>
 
-    <a th:href="${returnUrl != null ? returnUrl : '/events'}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-1"></i>
-        
-    </a>
-    <form th:action="@{/events/{id}/delete(id=${event.id})}" method="post">
-        <button type="submit" class="btn btn-danger">
-            <i class="fas fa-trash-alt me-1"></i>
-            <span th:text="#{event.delete.button}"></span>
-        </button>
-    </form>
-</div>
+                    <div class="alert alert-warning">
+                        <h5 class="text-danger" th:text="${event.name}"></h5>
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">
+                                <i class="far fa-calendar-alt me-2 text-secondary"></i>
+                                <span th:text="#{event.datetime}"></span>
+                            </dt>
+                            <dd class="col-sm-8">
+                                <span th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}"></span>
+                            </dd>
+
+                            <dt class="col-sm-4">
+                                <i class="fas fa-map-marker-alt me-2 text-secondary"></i>
+                                <span th:text="#{event.room}"></span>
+                            </dt>
+                            <dd class="col-sm-8">
+                                <span th:text="${event.room.name}"></span>
+                            </dd>
+
+                            <dt class="col-sm-4">
+                                <i class="fas fa-users me-2 text-secondary"></i>
+                                <span th:text="#{event.speakers}"></span>
+                            </dt>
+                            <dd class="col-sm-8">
+                                <span th:text="${#strings.listJoin(event.speakers.![name], ', ')}"></span>
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <div class="alert alert-danger mt-3" th:if="${hasFavorites}">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span th:text="#{event.delete.hasFavorites(${favoriteCount})}"></span>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+
+                    <a class="btn btn-secondary" th:href="${returnUrl != null ? returnUrl : '/events'}">
+                        <i class="fas fa-arrow-left me-1"></i>
+
+                    </a>
+                    <form method="post" th:action="@{/events/{id}/delete(id=${event.id})}">
+                        <button class="btn btn-danger" type="submit">
+                            <i class="fas fa-trash-alt me-1"></i>
+                            <span th:text="#{event.delete.button}"></span>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>

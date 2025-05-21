@@ -31,10 +31,10 @@ public class AdminController {
 			@RequestParam(required = false) String search,
 			@RequestParam(required = false, defaultValue = "datetime") String sort) {
 
-		// Store the current URL in the session for back navigation
+
 		adminService.storeAdminEventsUrl(request, session);
 
-		// Delegate the entire model preparation to the service
+
 		adminService.prepareAdminEventsModel(model, dateFrom, dateTo, room, priceMax, search, sort);
 
 		return "admin/events";

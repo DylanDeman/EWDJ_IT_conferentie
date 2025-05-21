@@ -8,18 +8,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Collection;
+import java.util.Collections;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import service.FavoriteService;
@@ -28,7 +27,6 @@ public class FavoriteControllerTest {
 
     private FavoriteService favoriteService;
     private FavoriteController favoriteController;
-    private MockMvc mockMvc;
     private RedirectAttributes redirectAttributes;
     private HttpServletRequest request;
 
@@ -40,116 +38,14 @@ public class FavoriteControllerTest {
         request = mock(HttpServletRequest.class);
 
         ReflectionTestUtils.setField(favoriteController, "favoriteService", favoriteService);
-
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(favoriteController)
-                .build();
     }
 
     @Test
-    public void testAddToFavorites_MockMvc_Authenticated() throws Exception {
+    public void testAddToFavorites_Authenticated() {
         Long eventId = 1L;
+        UserDetails userDetails = new StubUserDetails("testuser");
 
-        mockMvc.perform(post("/events/{id}/favorite", eventId)
-                        .flashAttr("username", "testuser"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/events/" + eventId))
-                .andExpect(flash().attribute("message", "Event added to favorites"));
-
-        verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
-    }
-
-    @Test
-    public void testAddToFavorites_MockMvc_Unauthenticated() throws Exception {
-        Long eventId = 1L;
-
-        mockMvc.perform(post("/events/{id}/favorite", eventId))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
-                .andExpect(flash().attribute("error", "You must be logged in to add favorites."));
-
-        verify(favoriteService, times(0)).toggleFavorite(anyLong(), anyString());
-    }
-
-    @Test
-    public void testAddToFavorites_MockMvc_ServiceThrowsException() throws Exception {
-        Long eventId = 1L;
-        String errorMessage = "Error toggling favorite status";
-
-        doThrow(new RuntimeException(errorMessage))
-                .when(favoriteService).toggleFavorite(eq(eventId), eq("testuser"));
-
-        mockMvc.perform(post("/events/{id}/favorite", eventId)
-                        .flashAttr("username", "testuser"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/events/" + eventId))
-                .andExpect(flash().attribute("error", errorMessage));
-
-        verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
-    }
-
-    @Test
-    public void testRemoveFromFavorites_MockMvc_Authenticated_DefaultRedirect() throws Exception {
-        Long eventId = 1L;
-
-        mockMvc.perform(post("/events/{id}/unfavorite", eventId)
-                        .flashAttr("username", "testuser"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/events/" + eventId))
-                .andExpect(flash().attribute("message", "Event removed from favorites"));
-
-        verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
-    }
-
-    @Test
-    public void testRemoveFromFavorites_MockMvc_Authenticated_FavoritesPageRedirect() throws Exception {
-        Long eventId = 1L;
-
-        mockMvc.perform(post("/events/{id}/unfavorite", eventId)
-                        .flashAttr("username", "testuser")
-                        .header("Referer", "http://localhost:8080/user/favorites"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/user/favorites"))
-                .andExpect(flash().attribute("message", "Event removed from favorites"));
-
-        verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
-    }
-
-    @Test
-    public void testRemoveFromFavorites_MockMvc_Unauthenticated() throws Exception {
-        Long eventId = 1L;
-
-        mockMvc.perform(post("/events/{id}/unfavorite", eventId))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/login"))
-                .andExpect(flash().attribute("error", "You must be logged in to remove favorites."));
-
-        verify(favoriteService, times(0)).toggleFavorite(anyLong(), anyString());
-    }
-
-    @Test
-    public void testRemoveFromFavorites_MockMvc_ServiceThrowsException() throws Exception {
-        Long eventId = 1L;
-        String errorMessage = "Error toggling favorite status";
-
-        doThrow(new RuntimeException(errorMessage))
-                .when(favoriteService).toggleFavorite(eq(eventId), eq("testuser"));
-
-        mockMvc.perform(post("/events/{id}/unfavorite", eventId)
-                        .flashAttr("username", "testuser"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/events/" + eventId))
-                .andExpect(flash().attribute("error", errorMessage));
-
-        verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
-    }
-
-    @Test
-    public void testDirectAddToFavorites_Success() {
-        Long eventId = 1L;
-        TestPrincipal principal = new TestPrincipal("testuser");
-
-        String result = favoriteController.addToFavorites(eventId, principal, redirectAttributes);
+        String result = favoriteController.addToFavorites(eventId, userDetails, redirectAttributes);
 
         verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
         verify(redirectAttributes).addFlashAttribute("message", "Event added to favorites");
@@ -157,37 +53,38 @@ public class FavoriteControllerTest {
     }
 
     @Test
-    public void testDirectAddToFavorites_NoUserDetails() {
+    public void testAddToFavorites_Unauthenticated() {
         Long eventId = 1L;
 
         String result = favoriteController.addToFavorites(eventId, null, redirectAttributes);
 
+        verify(favoriteService, times(0)).toggleFavorite(anyLong(), anyString());
         verify(redirectAttributes).addFlashAttribute("error", "You must be logged in to add favorites.");
         assert result.equals("redirect:/login");
     }
 
     @Test
-    public void testDirectAddToFavorites_ServiceException() {
+    public void testAddToFavorites_ServiceThrowsException() {
         Long eventId = 1L;
-        String errorMessage = "Error toggling favorite";
-        TestPrincipal principal = new TestPrincipal("testuser");
+        String errorMessage = "Error toggling favorite status";
+        UserDetails userDetails = new StubUserDetails("testuser");
 
-        when(favoriteService.toggleFavorite(eq(eventId), eq("testuser")))
-                .thenThrow(new RuntimeException(errorMessage));
+        doThrow(new RuntimeException(errorMessage))
+                .when(favoriteService).toggleFavorite(eq(eventId), eq("testuser"));
 
-        String result = favoriteController.addToFavorites(eventId, principal, redirectAttributes);
+        String result = favoriteController.addToFavorites(eventId, userDetails, redirectAttributes);
 
+        verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
         verify(redirectAttributes).addFlashAttribute("error", errorMessage);
         assert result.equals("redirect:/events/" + eventId);
     }
 
     @Test
-    public void testDirectRemoveFromFavorites_Success() {
+    public void testRemoveFromFavorites_Authenticated_DefaultRedirect() {
         Long eventId = 1L;
-        UserDetails principal = mock(UserDetails.class);
-        when(principal.getUsername()).thenReturn("testuser");
+        UserDetails userDetails = new StubUserDetails("testuser");
 
-        String result = favoriteController.removeFromFavorites(eventId, principal, redirectAttributes, request);
+        String result = favoriteController.removeFromFavorites(eventId, userDetails, redirectAttributes, request);
 
         verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
         verify(redirectAttributes).addFlashAttribute("message", "Event removed from favorites");
@@ -195,13 +92,12 @@ public class FavoriteControllerTest {
     }
 
     @Test
-    public void testDirectRemoveFromFavorites_RedirectToFavorites() {
+    public void testRemoveFromFavorites_Authenticated_FavoritesPageRedirect() {
         Long eventId = 1L;
-        UserDetails principal = mock(UserDetails.class);
-        when(principal.getUsername()).thenReturn("testuser");
+        UserDetails userDetails = new StubUserDetails("testuser");
         when(request.getHeader("Referer")).thenReturn("http://localhost:8080/user/favorites");
 
-        String result = favoriteController.removeFromFavorites(eventId, principal, redirectAttributes, request);
+        String result = favoriteController.removeFromFavorites(eventId, userDetails, redirectAttributes, request);
 
         verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
         verify(redirectAttributes).addFlashAttribute("message", "Event removed from favorites");
@@ -209,13 +105,12 @@ public class FavoriteControllerTest {
     }
 
     @Test
-    public void testDirectRemoveFromFavorites_NullReferer() {
+    public void testRemoveFromFavorites_NullReferer() {
         Long eventId = 1L;
-        UserDetails principal = mock(UserDetails.class);
-        when(principal.getUsername()).thenReturn("testuser");
+        UserDetails userDetails = new StubUserDetails("testuser");
         when(request.getHeader("Referer")).thenReturn(null);
 
-        String result = favoriteController.removeFromFavorites(eventId, principal, redirectAttributes, request);
+        String result = favoriteController.removeFromFavorites(eventId, userDetails, redirectAttributes, request);
 
         verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
         verify(redirectAttributes).addFlashAttribute("message", "Event removed from favorites");
@@ -223,40 +118,72 @@ public class FavoriteControllerTest {
     }
 
     @Test
-    public void testDirectRemoveFromFavorites_NoUserDetails() {
+    public void testRemoveFromFavorites_Unauthenticated() {
         Long eventId = 1L;
 
         String result = favoriteController.removeFromFavorites(eventId, null, redirectAttributes, request);
 
+        verify(favoriteService, times(0)).toggleFavorite(anyLong(), anyString());
         verify(redirectAttributes).addFlashAttribute("error", "You must be logged in to remove favorites.");
         assert result.equals("redirect:/login");
     }
 
     @Test
-    public void testDirectRemoveFromFavorites_ServiceException() {
+    public void testRemoveFromFavorites_ServiceException() {
         Long eventId = 1L;
-        String errorMessage = "Error toggling favorite";
-        UserDetails principal = mock(UserDetails.class);
-        when(principal.getUsername()).thenReturn("testuser");
+        String errorMessage = "Error toggling favorite status";
+        UserDetails userDetails = new StubUserDetails("testuser");
 
-        when(favoriteService.toggleFavorite(eq(eventId), eq("testuser")))
-                .thenThrow(new RuntimeException(errorMessage));
+        doThrow(new RuntimeException(errorMessage))
+                .when(favoriteService).toggleFavorite(eq(eventId), eq("testuser"));
 
-        String result = favoriteController.removeFromFavorites(eventId, principal, redirectAttributes, request);
+        String result = favoriteController.removeFromFavorites(eventId, userDetails, redirectAttributes, request);
 
+        verify(favoriteService, times(1)).toggleFavorite(eq(eventId), eq("testuser"));
         verify(redirectAttributes).addFlashAttribute("error", errorMessage);
         assert result.equals("redirect:/events/" + eventId);
     }
 
-    public static class TestPrincipal {
+    private static class StubUserDetails implements UserDetails {
         private final String username;
 
-        public TestPrincipal(String username) {
+        public StubUserDetails(String username) {
             this.username = username;
         }
 
+        @Override
+        public Collection<? extends GrantedAuthority> getAuthorities() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public String getPassword() {
+            return "password";
+        }
+
+        @Override
         public String getUsername() {
             return username;
+        }
+
+        @Override
+        public boolean isAccountNonExpired() {
+            return true;
+        }
+
+        @Override
+        public boolean isAccountNonLocked() {
+            return true;
+        }
+
+        @Override
+        public boolean isCredentialsNonExpired() {
+            return true;
+        }
+
+        @Override
+        public boolean isEnabled() {
+            return true;
         }
     }
 }

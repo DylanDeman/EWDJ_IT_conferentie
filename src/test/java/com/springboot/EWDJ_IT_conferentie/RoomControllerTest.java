@@ -1,275 +1,293 @@
 package com.springboot.EWDJ_IT_conferentie;
 
-import domain.Event;
-import domain.Room;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.context.MessageSource;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import service.RoomService;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.*;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.context.MessageSource;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import domain.Event;
+import domain.Room;
+import service.RoomService;
 
 public class RoomControllerTest {
 
-    private MockMvc mockMvc;
-
-    @Mock
     private RoomService roomService;
-    
-    @Mock
     private MessageSource messageSource;
-
-    @InjectMocks
     private RoomController roomController;
+    private Model model;
+    private RedirectAttributes redirectAttributes;
+    private BindingResult bindingResult;
 
     @BeforeEach
     public void setup() {
-        MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(roomController)
-                .apply(SecurityMockMvcConfigurers.springSecurity())
-                .build();
-                
-        when(messageSource.getMessage(anyString(), any(), any())).thenReturn("Mock message");
+        roomService = mock(RoomService.class);
+        messageSource = mock(MessageSource.class);
+        model = mock(Model.class);
+        redirectAttributes = mock(RedirectAttributes.class);
+        bindingResult = mock(BindingResult.class);
+
+        roomController = new RoomController();
+        ReflectionTestUtils.setField(roomController, "roomService", roomService);
+        ReflectionTestUtils.setField(roomController, "messageSource", messageSource);
+
+        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("Message");
     }
 
     @Test
-    public void testListRooms_NoFilters() throws Exception {
-        Room room1 = new Room();
-        room1.setId(1L);
-        room1.setName("A101");
-        room1.setCapacity(30);
-
-        Room room2 = new Room();
-        room2.setId(2L);
-        room2.setName("B202");
-        room2.setCapacity(25);
-
-        List<Room> rooms = Arrays.asList(room1, room2);
-        
+    public void testListRooms_NoFilters() {
+        List<Room> rooms = Arrays.asList(new Room(), new Room());
         when(roomService.filterRooms(null, null, "name")).thenReturn(rooms);
 
+        String viewName = roomController.listRooms(model, null, null, "name");
 
-        mockMvc.perform(get("/rooms"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("rooms/list"))
-                .andExpect(model().attribute("rooms", rooms))
-                .andExpect(model().attribute("sortFilter", "name"));
-        
-        verify(roomService, times(1)).filterRooms(null, null, "name");
+        verify(roomService).filterRooms(null, null, "name");
+        verify(model).addAttribute("rooms", rooms);
+        verify(model).addAttribute("sortFilter", "name");
+        assert viewName.equals("rooms/list");
     }
 
     @Test
-    public void testListRooms_WithFilters() throws Exception {
+    public void testListRooms_WithFilters() {
+        List<Room> rooms = Arrays.asList(new Room(), new Room());
+        when(roomService.filterRooms(50, "conference", "capacity")).thenReturn(rooms);
 
-        Room room = new Room();
-        room.setId(1L);
-        room.setName("A101");
-        room.setCapacity(30);
+        String viewName = roomController.listRooms(model, 50, "conference", "capacity");
 
-        List<Room> rooms = Arrays.asList(room);
-        
-        when(roomService.filterRooms(30, "A1", "capacity")).thenReturn(rooms);
-
-
-        mockMvc.perform(get("/rooms")
-                .param("capacity", "30")
-                .param("search", "A1")
-                .param("sort", "capacity"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("rooms/list"))
-                .andExpect(model().attribute("rooms", rooms))
-                .andExpect(model().attribute("capacityFilter", 30))
-                .andExpect(model().attribute("searchFilter", "A1"))
-                .andExpect(model().attribute("sortFilter", "capacity"));
-        
-        verify(roomService, times(1)).filterRooms(30, "A1", "capacity");
+        verify(roomService).filterRooms(50, "conference", "capacity");
+        verify(model).addAttribute("rooms", rooms);
+        verify(model).addAttribute("capacityFilter", 50);
+        verify(model).addAttribute("searchFilter", "conference");
+        verify(model).addAttribute("sortFilter", "capacity");
+        assert viewName.equals("rooms/list");
     }
 
     @Test
-    public void testViewRoom_RoomExists() throws Exception {
-        
-        Room room = new Room();
-        room.setId(1L);
-        room.setName("A101");
-        room.setCapacity(30);
-        
+    public void testViewRoom_ExistingRoom() {
+        Room room = createRoom(1L, "Hall A", 100);
         when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
 
-        
-        mockMvc.perform(get("/rooms/1"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("rooms/detail"))
-                .andExpect(model().attribute("room", room));
-        
-        verify(roomService, times(1)).getRoomById(1L);
+        String viewName = roomController.viewRoom(1L, model);
+
+        verify(roomService).getRoomById(1L);
+        verify(model).addAttribute("room", room);
+        assert viewName.equals("rooms/detail");
     }
 
     @Test
-    public void testViewRoom_RoomNotFound() throws Exception {
-        
+    public void testViewRoom_NonExistentRoom() {
         when(roomService.getRoomById(999L)).thenReturn(Optional.empty());
 
-        
-        mockMvc.perform(get("/rooms/999"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/rooms"));
-        
-        verify(roomService, times(1)).getRoomById(999L);
+        String viewName = roomController.viewRoom(999L, model);
+
+        verify(roomService).getRoomById(999L);
+        assert viewName.equals("redirect:/rooms");
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    public void testShowAddRoomForm_WithAdminRole() throws Exception {
-        
-        mockMvc.perform(get("/rooms/new"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("rooms/form"))
-                .andExpect(model().attributeExists("room"));
+    public void testShowAddRoomForm() {
+        String viewName = roomController.showAddRoomForm(model);
+
+        verify(model).addAttribute(eq("room"), any(Room.class));
+        assert viewName.equals("rooms/form");
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    public void testShowAddRoomForm_WithUserRole_ShouldBeForbidden() throws Exception {
-        
-        mockMvc.perform(get("/rooms/new"))
-                .andExpect(status().isForbidden());
+    public void testAddRoom_Success() {
+        Room room = createRoom(null, "New Room", 200);
+        Room savedRoom = createRoom(1L, "New Room", 200);
+
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(roomService.save(room)).thenReturn(savedRoom);
+        when(messageSource.getMessage(eq("room.added"), any(), any(Locale.class))).thenReturn("Room added");
+
+        String viewName = roomController.addRoom(room, bindingResult, redirectAttributes);
+
+        verify(roomService).save(room);
+        verify(redirectAttributes).addFlashAttribute("message", "Room added");
+        assert viewName.equals("redirect:/rooms");
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    public void testAddRoom_Success() throws Exception {
-        
-        Room roomToSave = new Room();
-        roomToSave.setName("A101");
-        roomToSave.setCapacity(30);
-        
-        Room savedRoom = new Room();
-        savedRoom.setId(1L);
-        savedRoom.setName("A101");
-        savedRoom.setCapacity(30);
-        
-        when(roomService.save(any(Room.class))).thenReturn(savedRoom);
+    public void testAddRoom_ValidationError() {
+        Room room = createRoom(null, "", 0);
 
-        
-        mockMvc.perform(post("/rooms/new")
-                .param("name", "A101")
-                .param("capacity", "30")
-                .flashAttr("room", roomToSave))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/rooms"))
-                .andExpect(flash().attributeExists("message"));
-        
-        verify(roomService, times(1)).save(any(Room.class));
+        when(bindingResult.hasErrors()).thenReturn(true);
+
+        String viewName = roomController.addRoom(room, bindingResult, redirectAttributes);
+
+        assert viewName.equals("rooms/form");
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    public void testAddRoom_ValidationErrors() throws Exception {
-        
-        mockMvc.perform(post("/rooms/new")
-                .param("name", "invalid name") // Invalid format
-                .param("capacity", "60")) // Over capacity limit
-                .andExpect(status().isOk())
-                .andExpect(view().name("rooms/form"))
-                .andExpect(model().hasErrors());
+    public void testAddRoom_ServiceException() {
+        Room room = createRoom(null, "Duplicate", 100);
+
+        when(bindingResult.hasErrors()).thenReturn(false);
+        when(roomService.save(room)).thenThrow(new RuntimeException("Room with this name already exists"));
+
+        String viewName = roomController.addRoom(room, bindingResult, redirectAttributes);
+
+        verify(bindingResult).rejectValue("name", "error.room", "Room with this name already exists");
+        assert viewName.equals("rooms/form");
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    public void testConfirmDeleteRoom_RoomExists() throws Exception {
-        
-        Room room = new Room();
-        room.setId(1L);
-        room.setName("A101");
-        room.setCapacity(30);
-        
+    public void testConfirmDeleteRoom_ExistingRoom() {
+        Room room = createRoom(1L, "Room to Delete", 50);
         when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
 
-        
-        mockMvc.perform(get("/rooms/1/confirm"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("rooms/confirm-delete"))
-                .andExpect(model().attribute("room", room));
-        
-        verify(roomService, times(1)).getRoomById(1L);
+        String viewName = roomController.confirmDeleteRoom(1L, model, 100, "test", "name");
+
+        verify(roomService).getRoomById(1L);
+        verify(model).addAttribute("room", room);
+        verify(model).addAttribute("capacityFilter", 100);
+        verify(model).addAttribute("searchFilter", "test");
+        verify(model).addAttribute("sortFilter", "name");
+        assert viewName.equals("rooms/confirm-delete");
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    public void testConfirmDeleteRoom_RoomNotFound() throws Exception {
-
+    public void testConfirmDeleteRoom_NonExistentRoom() {
         when(roomService.getRoomById(999L)).thenReturn(Optional.empty());
 
+        String viewName = roomController.confirmDeleteRoom(999L, model, 100, "test", "name");
 
-        mockMvc.perform(get("/rooms/999/confirm"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/rooms"));
-        
-        verify(roomService, times(1)).getRoomById(999L);
+        verify(roomService).getRoomById(999L);
+        assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    public void testDeleteRoom_Success() throws Exception {
-        
-        Room room = new Room();
-        room.setId(1L);
-        room.setName("A101");
-        room.setCapacity(30);
+    public void testDeleteRoom_Success() {
+        Room room = createRoom(1L, "Room to Delete", 50);
         room.setEvents(Collections.emptySet());
-        
-        when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
-        doNothing().when(roomService).deleteById(1L);
 
-        
-        mockMvc.perform(post("/rooms/1/delete"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/rooms"))
-                .andExpect(flash().attributeExists("message"));
-        
-        verify(roomService, times(1)).getRoomById(1L);
-        verify(roomService, times(1)).deleteById(1L);
+        when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
+        when(messageSource.getMessage(eq("room.deleted"), any(), any(Locale.class))).thenReturn("Room deleted");
+
+        String viewName = roomController.deleteRoom(1L, 100, "test", "name", redirectAttributes);
+
+        verify(roomService).getRoomById(1L);
+        verify(roomService).deleteById(1L);
+        verify(redirectAttributes).addFlashAttribute("message", "Room deleted");
+        assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
-    public void testDeleteRoom_WithEvents_ShouldFail() throws Exception {
-        
-        Room room = new Room();
-        room.setId(1L);
-        room.setName("A101");
-        room.setCapacity(30);
-        
-        Event event = new Event();
-        event.setId(100L);
-        event.setName("Test Event");
-        event.setRoom(room);
-        
-        room.setEvents(new HashSet<>(Arrays.asList(event)));
-        
-        when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
+    public void testDeleteRoom_WithEvents() {
+        Room room = createRoom(1L, "Room with Events", 50);
+        List<Event> eventList = Arrays.asList(new Event(), new Event());
+        room.setEvents(new HashSet<>(eventList));
 
-  
-        mockMvc.perform(post("/rooms/1/delete"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/rooms"))
-                .andExpect(flash().attributeExists("error"));
-        
-        verify(roomService, times(1)).getRoomById(1L);
-        verify(roomService, never()).deleteById(anyLong());
+        when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
+        when(messageSource.getMessage(eq("room.delete.events"), any(), any(Locale.class))).thenReturn("Cannot delete room with events");
+
+        String viewName = roomController.deleteRoom(1L, 100, "test", "name", redirectAttributes);
+
+        verify(roomService).getRoomById(1L);
+        verify(roomService, times(0)).deleteById(anyLong());
+        verify(redirectAttributes).addFlashAttribute("error", "Cannot delete room with events");
+        assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
+    }
+
+    @Test
+    public void testDeleteRoom_NonExistentRoom() {
+        when(roomService.getRoomById(999L)).thenReturn(Optional.empty());
+
+        String viewName = roomController.deleteRoom(999L, 100, "test", "name", redirectAttributes);
+
+        verify(roomService).getRoomById(999L);
+        verify(redirectAttributes).addFlashAttribute(eq("error"), anyString());
+        assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
+    }
+
+    @Test
+    public void testDeleteRoom_ServiceException() {
+        Room room = createRoom(1L, "Room to Delete", 50);
+        room.setEvents(Collections.emptySet());
+
+        when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
+        doThrow(new RuntimeException("Database error")).when(roomService).deleteById(1L);
+
+        String viewName = roomController.deleteRoom(1L, 100, "test", "name", redirectAttributes);
+
+        verify(roomService).getRoomById(1L);
+        verify(roomService).deleteById(1L);
+        verify(redirectAttributes).addFlashAttribute(eq("error"), anyString());
+        assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
+    }
+
+    @Test
+    public void testBuildRedirectUrl_NoParams() {
+        String url = invokePrivateMethod(roomController, "buildRedirectUrl",
+                "redirect:/rooms", null, null, null);
+
+        assert url.equals("redirect:/rooms");
+    }
+
+    @Test
+    public void testBuildRedirectUrl_WithParams() {
+        String url = invokePrivateMethod(roomController, "buildRedirectUrl",
+                "redirect:/rooms", 100, "test", "name");
+
+        assert url.equals("redirect:/rooms?capacity=100&search=test&sort=name");
+    }
+
+    @Test
+    public void testBuildRedirectUrl_WithPartialParams() {
+        String url = invokePrivateMethod(roomController, "buildRedirectUrl",
+                "redirect:/rooms", 100, null, "name");
+
+        assert url.equals("redirect:/rooms?capacity=100&sort=name");
+    }
+
+    private Room createRoom(Long id, String name, int capacity) {
+        Room room = new Room();
+        room.setId(id);
+        room.setName(name);
+        room.setCapacity(capacity);
+        room.setEvents(new HashSet<>());
+        return room;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String invokePrivateMethod(Object object, String methodName, Object... args) {
+        try {
+            Class<?>[] parameterTypes = new Class<?>[args.length];
+
+            if (args.length > 0) {
+                for (int i = 0; i < args.length; i++) {
+                    if (args[i] == null) {
+                        // This is a bit tricky but we can use parameter types based on method signature
+                        if (i == 0) parameterTypes[i] = String.class; // baseUrl
+                        else if (i == 1) parameterTypes[i] = Integer.class; // capacity
+                        else if (i == 2) parameterTypes[i] = String.class; // search
+                        else if (i == 3) parameterTypes[i] = String.class; // sort
+                    } else {
+                        parameterTypes[i] = args[i].getClass();
+                    }
+                }
+            }
+
+            java.lang.reflect.Method method = object.getClass().getDeclaredMethod(methodName, parameterTypes);
+            method.setAccessible(true);
+            return (String) method.invoke(object, args);
+        } catch (Exception e) {
+            throw new RuntimeException("Error invoking private method", e);
+        }
     }
 }

@@ -1,20 +1,20 @@
 package service;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+import domain.Event;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
-import domain.Event;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -105,7 +105,7 @@ public class AdminServiceImpl implements AdminService {
 			events.sort((e1, e2) -> e2.getName().compareToIgnoreCase(e1.getName()));
 			break;
 		case "price":
-			events.sort((e1, e2) -> e1.getPrice().compareTo(e2.getPrice()));
+			events.sort(Comparator.comparing(Event::getPrice));
 			break;
 		case "price_desc":
 			events.sort((e1, e2) -> e2.getPrice().compareTo(e1.getPrice()));
@@ -124,7 +124,7 @@ public class AdminServiceImpl implements AdminService {
 					popularityMap.getOrDefault(e1.getId(), 0)));
 			break;
 		default:
-			events.sort((e1, e2) -> e1.getDateTime().compareTo(e2.getDateTime()));
+			events.sort(Comparator.comparing(Event::getDateTime));
 		}
 	}
 

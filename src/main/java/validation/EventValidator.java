@@ -1,35 +1,29 @@
 package validation;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-
+import domain.Event;
 import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-
-import domain.Event;
 import service.ValidationService;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Component
 public class EventValidator implements Validator {
 
-	// Updated conference dates to first week of June
+
 	private static final LocalDate CONFERENCE_START_DATE = LocalDate.of(2025, 6, 1);
 	private static final LocalDate CONFERENCE_END_DATE = LocalDate.of(2025, 6, 7);
 	private static final BigDecimal MIN_PRICE = new BigDecimal("9.99");
 	private static final BigDecimal MAX_PRICE = new BigDecimal("99.99");
 
 	private final ValidationService validationService;
-	private final MessageSource messageSource;
+
 
 	public EventValidator(ValidationService validationService, MessageSource messageSource) {
 		this.validationService = validationService;
-		this.messageSource = messageSource;
 	}
 
 	@Override
@@ -41,10 +35,9 @@ public class EventValidator implements Validator {
 	public void validate(Object target, Errors errors) {
 		Event event = (Event) target;
 
-		// Common validations for all events
+
 		validateCommonRules(event, errors);
-		
-		// Apply specific validations based on whether this is a new or existing event
+
 		if (event.getId() == null) {
 			validateNewEvent(event, errors);
 		} else {
@@ -52,18 +45,16 @@ public class EventValidator implements Validator {
 		}
 	}
 
-	/**
-	 * Validates rules common to both new and existing events
-	 */
+
 	private void validateCommonRules(Event event, Errors errors) {
-		// Validate name
+
 		if (event.getName() == null || event.getName().isEmpty()) {
 			errors.rejectValue("name", "error.name.required", "Event name is required");
 		} else if (!Character.isLetter(event.getName().charAt(0))) {
 			errors.rejectValue("name", "error.name.letter", "Event name must start with a letter");
 		}
 		
-		// Validate date and time
+
 		if (event.getDateTime() == null) {
 			errors.rejectValue("dateTime", "error.dateTime.required", "Event date/time is required");
 		} else {
@@ -74,36 +65,30 @@ public class EventValidator implements Validator {
 			}
 		}
 		
-		// Validate price
+
 		if (event.getPrice() == null) {
 			errors.rejectValue("price", "error.price.required", "Event price is required");
 		} else if (event.getPrice().compareTo(MIN_PRICE) < 0 || event.getPrice().compareTo(MAX_PRICE) >= 0) {
 			errors.rejectValue("price", "error.price.range", "Event price must be between €9.99 and €99.99");
 		}
-		
-		// Validate beamer check code
+
 		if (event.getBeamerCheck() != event.getBeamerCode() % 97) {
 			errors.rejectValue("beamerCheck", "error.beamerCheck", "Invalid beamer check code");
 		}
 	}
 
-	/**
-	 * Validates rules specific to new events
-	 */
+
 	private void validateNewEvent(Event event, Errors errors) {
 		validateRoomAvailabilityForNewEvent(event, errors);
 		validateNameUniquenessForNewEvent(event, errors);
 	}
 
-	/**
-	 * Validates rules specific to existing events
-	 */
 	private void validateExistingEvent(Event event, Errors errors) {
 		validateRoomAvailabilityForUpdate(event, errors);
 		validateNameUniquenessForUpdate(event, errors);
 	}
 
-	// Other validation methods remain unchanged
+
 
 	private void validateRoomAvailabilityForNewEvent(Event event, Errors errors) {
 		if (event.getRoom() == null) {
@@ -160,21 +145,5 @@ public class EventValidator implements Validator {
 			errors.rejectValue("name", "error.name.exists",
 					"An event with this name already exists on the same date");
 		}
-	}
-
-	public boolean isRoomAvailable(LocalDateTime dateTime, Long roomId) {
-		return validationService.isRoomAvailable(dateTime, roomId);
-	}
-
-	public boolean isEventNameUniqueOnDate(LocalDateTime date, String name) {
-		return validationService.isEventNameUniqueOnDate(date, name);
-	}
-
-	public boolean existsByNameAndDate(String name, LocalDate date) {
-		return validationService.existsByNameAndDate(name, date);
-	}
-
-	public boolean existsByNameAndDateExcludingId(String name, LocalDate date, Long eventId) {
-		return validationService.existsByNameAndDateExcludingId(name, date, eventId);
 	}
 }

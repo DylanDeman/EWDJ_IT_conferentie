@@ -1,267 +1,270 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org"
+>
 <head th:replace="layout/base :: head">
     <title th:text="#{nav.manageEvents} + ' - ' + #{app.name}"></title>
 </head>
 <body>
-    <div th:replace="layout/base :: nav"></div>
+<div th:replace="layout/base :: nav"></div>
 
-    <div class="container-fluid mt-4">
-        <div class="row mb-4">
-            <div class="col">
-                <h1 class="h3 text-gray-800">
-                    <i class="fas fa-calendar-alt me-2 text-primary"></i>
-                    <span th:text="#{nav.manageEvents}"></span>
-                </h1>
-                <p class="text-muted" th:text="#{admin.manage.description}"></p>
-            </div>
-            <div class="col-auto">
-                <a th:href="@{/events/new}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>
-                    <span th:text="#{event.create.button}"></span>
-                </a>
-            </div>
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 text-gray-800">
+                <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                <span th:text="#{nav.manageEvents}"></span>
+            </h1>
+            <p class="text-muted" th:text="#{admin.manage.description}"></p>
         </div>
-
-   
-        <div th:if="${message}" class="alert alert-success mb-4" role="alert">
-            <i class="fas fa-check-circle me-2"></i>
-            <span th:text="${message}"></span>
-            <a th:href="@{/admin/events}" class="float-end text-decoration-none">×</a>
+        <div class="col-auto">
+            <a class="btn btn-primary" th:href="@{/events/new}">
+                <i class="fas fa-plus me-1"></i>
+                <span th:text="#{event.create.button}"></span>
+            </a>
         </div>
-
-        <div th:if="${error}" class="alert alert-danger mb-4" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i>
-            <span th:text="${error}"></span>
-            <a th:href="@{/admin/events}" class="float-end text-decoration-none">×</a>
-        </div>
-
-
-     
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">
-                    <i class="fas fa-filter me-1"></i> <span th:text="#{admin.filter.title}"></span>
-                </h6>
-            </div>
-            <div class="card-body">
-          
-                <div class="row g-3">
-             
-                    <div class="col-md-3">
-                        <form th:action="@{/admin/events}" method="get">
-                     
-                            <input type="hidden" name="dateTo" th:value="${dateTo}">
-                            <input type="hidden" name="room" th:value="${room}">
-                            <input type="hidden" name="priceMax" th:value="${priceMax}">
-                            <input type="hidden" name="sort" th:value="${sort}">
-                            <input type="hidden" name="search" th:value="${search}">
-                            
-                            <label for="dateFrom" class="form-label" th:text="#{admin.filter.fromDate}"></label>
-                            <div class="input-group">
-                                <input type="date" class="form-control" id="dateFrom" name="dateFrom"
-       th:value="${dateFrom != null ? #temporals.format(dateFrom, 'yyyy-MM-dd') : ''}"
-       min="2025-06-01" max="2025-06-07"
-       onchange="this.form.submit()">
-                                <button type="submit" class="btn btn-outline-secondary">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    
-        
-                    <div class="col-md-3">
-                        <form th:action="@{/admin/events}" method="get">
-                      
-                            <input type="hidden" name="dateFrom" th:value="${dateFrom}">
-                            <input type="hidden" name="room" th:value="${room}">
-                            <input type="hidden" name="priceMax" th:value="${priceMax}">
-                            <input type="hidden" name="sort" th:value="${sort}">
-                            <input type="hidden" name="search" th:value="${search}">
-                            
-                            <label for="dateTo" class="form-label" th:text="#{admin.filter.toDate}"></label>
-                            <div class="input-group">
-  <input type="date" class="form-control" id="dateTo" name="dateTo"
-       th:value="${dateTo != null ? #temporals.format(dateTo, 'yyyy-MM-dd') : ''}"
-       min="2025-06-01" max="2025-06-07"
-       onchange="this.form.submit()">
-
-                                <button type="submit" class="btn btn-outline-secondary">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    
-              
-                    <div class="col-md-3">
-                        <form th:action="@{/admin/events}" method="get">
-                       
-                            <input type="hidden" name="dateFrom" th:value="${dateFrom}">
-                            <input type="hidden" name="dateTo" th:value="${dateTo}">
-                            <input type="hidden" name="priceMax" th:value="${priceMax}">
-                            <input type="hidden" name="sort" th:value="${sort}">
-                            <input type="hidden" name="search" th:value="${search}">
-                            
-                            <label for="room" class="form-label" th:text="#{event.room}"></label>
-                            <select class="form-select" id="room" name="room" onchange="this.form.submit()">
-                                <option value="" th:text="#{room.filter.all}"></option>
-                                <option th:each="r : ${rooms}" th:value="${r.id}" th:text="${r.name}"
-                                        th:selected="${room != null && room == r.id}"></option>
-                            </select>
-                        </form>
-                    </div>
-                    
-              
-                    <div class="col-md-3">
-                        <form th:action="@{/admin/events}" method="get">
-                          
-                            <input type="hidden" name="dateFrom" th:value="${dateFrom}">
-                            <input type="hidden" name="dateTo" th:value="${dateTo}">
-                            <input type="hidden" name="room" th:value="${room}">
-                            <input type="hidden" name="sort" th:value="${sort}">
-                            <input type="hidden" name="search" th:value="${search}">
-                            
-                            <label for="priceMax" class="form-label" th:text="#{admin.filter.maxPrice}"></label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="priceMax" name="priceMax" 
-                                       min="0" step="0.01" th:value="${priceMax}">
-                                <button type="submit" class="btn btn-outline-secondary">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    
-               
-                    <div class="col-md-3">
-                        <form th:action="@{/admin/events}" method="get">
-                     
-                            <input type="hidden" name="dateFrom" th:value="${dateFrom}">
-                            <input type="hidden" name="dateTo" th:value="${dateTo}">
-                            <input type="hidden" name="room" th:value="${room}">
-                            <input type="hidden" name="priceMax" th:value="${priceMax}">
-                            <input type="hidden" name="search" th:value="${search}">
-                            
-                            <label for="sort" class="form-label" th:text="#{event.filter.sort}"></label>
-                            <select class="form-select" id="sort" name="sort" onchange="this.form.submit()">
-                                <option value="datetime" th:selected="${sort == 'datetime' || sort == null}" 
-                                        th:text="#{admin.sort.dateAsc}"></option>
-                                <option value="datetime_desc" th:selected="${sort == 'datetime_desc'}" 
-                                        th:text="#{admin.sort.dateDesc}"></option>
-                                <option value="name" th:selected="${sort == 'name'}" 
-                                        th:text="#{admin.sort.nameAsc}"></option>
-                                <option value="name_desc" th:selected="${sort == 'name_desc'}" 
-                                        th:text="#{admin.sort.nameDesc}"></option>
-                                <option value="price" th:selected="${sort == 'price'}" 
-                                        th:text="#{admin.sort.priceAsc}"></option>
-                                <option value="price_desc" th:selected="${sort == 'price_desc'}" 
-                                        th:text="#{admin.sort.priceDesc}"></option>
-                                <option value="popularity" th:selected="${sort == 'popularity'}" 
-                                        th:text="#{admin.sort.popularity}"></option>
-                            </select>
-                        </form>
-                    </div>
-                    
-             
-                    <div class="col-md-6">
-                        <form th:action="@{/admin/events}" method="get">
-                    
-                            <input type="hidden" name="dateFrom" th:value="${dateFrom}">
-                            <input type="hidden" name="dateTo" th:value="${dateTo}">
-                            <input type="hidden" name="room" th:value="${room}">
-                            <input type="hidden" name="priceMax" th:value="${priceMax}">
-                            <input type="hidden" name="sort" th:value="${sort}">
-                            
-                            <label for="search" class="form-label" th:text="#{admin.filter.search}"></label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="search" name="search" 
-                                       th:placeholder="#{admin.search.name.only}" th:value="${search}">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    
-            
-                    <div class="col-12">
-                        <a th:href="@{/admin/events}" class="btn btn-outline-secondary">
-                            <i class="fas fa-undo me-1"></i> <span th:text="#{room.filter.clear}"></span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <div class="card shadow mb-4">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">
-                    <span th:text="#{admin.events.found(${events.size()})}"></span>
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped" id="eventsTable">
-                        <thead>
-                            <tr>
-                                <th th:text="#{event.name}"></th>
-                                <th th:text="#{event.datetime}"></th>
-                                <th th:text="#{event.room}"></th>
-                                <th th:text="#{event.speakers}"></th>
-                                <th th:text="#{event.price}"></th>
-                                <th th:text="#{admin.column.favorites}"></th>
-                                <th class="text-center" th:text="#{admin.column.actions}"></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="event : ${events}">
-                                <td>
-                                    <a th:href="@{/events/{id}(id=${event.id})}" class="fw-bold text-primary" th:text="${event.name}"></a>
-                                </td>
-                                <td th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}"></td>
-                                <td th:text="${event.room.name}"></td>
-                                <td>
-                                    <span th:text="${#strings.listJoin(event.speakers.![name], ', ')}"></span>
-                                    <span th:if="${event.speakers.isEmpty()}" class="text-muted fst-italic" th:text="#{admin.no.speakers}"></span>
-                                </td>
-                                <td th:text="${#numbers.formatCurrency(event.price)}"></td>
-                                <td>
-                                    <span class="badge bg-info" th:if="${eventFavorites.containsKey(event.id)}" 
-                                          th:text="${eventFavorites.get(event.id)}"></span>
-                                    <span class="badge bg-secondary" th:unless="${eventFavorites.containsKey(event.id)}">0</span>
-                                </td>
-                                <td class="text-center">
-    <div class="btn-group btn-group-sm">
-        <a th:href="@{/events/{id}(id=${event.id})}" class="btn btn-info" title="View">
-            <i class="fas fa-eye"></i>
-        </a>
-        <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn btn-warning" title="Edit">
-            <i class="fas fa-edit"></i>
-        </a>
-        <a th:href="@{/events/{id}/confirm(id=${event.id})}" class="btn btn-danger" title="Delete">
-            <i class="fas fa-trash-alt"></i>
-        </a>
     </div>
-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+
+    <div class="alert alert-success mb-4" role="alert" th:if="${message}">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${message}"></span>
+        <a class="float-end text-decoration-none" th:href="@{/admin/events}">×</a>
+    </div>
+
+    <div class="alert alert-danger mb-4" role="alert" th:if="${error}">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <a class="float-end text-decoration-none" th:href="@{/admin/events}">×</a>
+    </div>
+
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-1"></i> <span th:text="#{admin.filter.title}"></span>
+            </h6>
+        </div>
+        <div class="card-body">
+
+            <div class="row g-3">
+
+                <div class="col-md-3">
+                    <form method="get" th:action="@{/admin/events}">
+
+                        <input name="dateTo" th:value="${dateTo}" type="hidden">
+                        <input name="room" th:value="${room}" type="hidden">
+                        <input name="priceMax" th:value="${priceMax}" type="hidden">
+                        <input name="sort" th:value="${sort}" type="hidden">
+                        <input name="search" th:value="${search}" type="hidden">
+
+                        <label class="form-label" for="dateFrom" th:text="#{admin.filter.fromDate}"></label>
+                        <div class="input-group">
+                            <input class="form-control" id="dateFrom" max="2025-06-07" min="2025-06-01"
+                                   name="dateFrom"
+                                   onchange="this.form.submit()" th:value="${dateFrom != null ? #temporals.format(dateFrom, 'yyyy-MM-dd') : ''}"
+                                   type="date">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                
-      
-                <div th:if="${events.isEmpty()}" class="text-center py-5">
-                    <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
-                    <p class="lead" th:text="#{admin.no.events.found}"></p>
-                    <a th:href="@{/admin/events}" class="btn btn-primary mt-2">
+
+
+                <div class="col-md-3">
+                    <form method="get" th:action="@{/admin/events}">
+
+                        <input name="dateFrom" th:value="${dateFrom}" type="hidden">
+                        <input name="room" th:value="${room}" type="hidden">
+                        <input name="priceMax" th:value="${priceMax}" type="hidden">
+                        <input name="sort" th:value="${sort}" type="hidden">
+                        <input name="search" th:value="${search}" type="hidden">
+
+                        <label class="form-label" for="dateTo" th:text="#{admin.filter.toDate}"></label>
+                        <div class="input-group">
+                            <input class="form-control" id="dateTo" max="2025-06-07" min="2025-06-01"
+                                   name="dateTo"
+                                   onchange="this.form.submit()" th:value="${dateTo != null ? #temporals.format(dateTo, 'yyyy-MM-dd') : ''}"
+                                   type="date">
+
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <div class="col-md-3">
+                    <form method="get" th:action="@{/admin/events}">
+
+                        <input name="dateFrom" th:value="${dateFrom}" type="hidden">
+                        <input name="dateTo" th:value="${dateTo}" type="hidden">
+                        <input name="priceMax" th:value="${priceMax}" type="hidden">
+                        <input name="sort" th:value="${sort}" type="hidden">
+                        <input name="search" th:value="${search}" type="hidden">
+
+                        <label class="form-label" for="room" th:text="#{event.room}"></label>
+                        <select class="form-select" id="room" name="room" onchange="this.form.submit()">
+                            <option th:text="#{room.filter.all}" value=""></option>
+                            <option th:each="r : ${rooms}" th:selected="${room != null && room == r.id}" th:text="${r.name}"
+                                    th:value="${r.id}"></option>
+                        </select>
+                    </form>
+                </div>
+
+
+                <div class="col-md-3">
+                    <form method="get" th:action="@{/admin/events}">
+
+                        <input name="dateFrom" th:value="${dateFrom}" type="hidden">
+                        <input name="dateTo" th:value="${dateTo}" type="hidden">
+                        <input name="room" th:value="${room}" type="hidden">
+                        <input name="sort" th:value="${sort}" type="hidden">
+                        <input name="search" th:value="${search}" type="hidden">
+
+                        <label class="form-label" for="priceMax" th:text="#{admin.filter.maxPrice}"></label>
+                        <div class="input-group">
+                            <input class="form-control" id="priceMax" min="0" name="priceMax"
+                                   step="0.01" th:value="${priceMax}" type="number">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <div class="col-md-3">
+                    <form method="get" th:action="@{/admin/events}">
+
+                        <input name="dateFrom" th:value="${dateFrom}" type="hidden">
+                        <input name="dateTo" th:value="${dateTo}" type="hidden">
+                        <input name="room" th:value="${room}" type="hidden">
+                        <input name="priceMax" th:value="${priceMax}" type="hidden">
+                        <input name="search" th:value="${search}" type="hidden">
+
+                        <label class="form-label" for="sort" th:text="#{event.filter.sort}"></label>
+                        <select class="form-select" id="sort" name="sort" onchange="this.form.submit()">
+                            <option th:selected="${sort == 'datetime' || sort == null}" th:text="#{admin.sort.dateAsc}"
+                                    value="datetime"></option>
+                            <option th:selected="${sort == 'datetime_desc'}" th:text="#{admin.sort.dateDesc}"
+                                    value="datetime_desc"></option>
+                            <option th:selected="${sort == 'name'}" th:text="#{admin.sort.nameAsc}"
+                                    value="name"></option>
+                            <option th:selected="${sort == 'name_desc'}" th:text="#{admin.sort.nameDesc}"
+                                    value="name_desc"></option>
+                            <option th:selected="${sort == 'price'}" th:text="#{admin.sort.priceAsc}"
+                                    value="price"></option>
+                            <option th:selected="${sort == 'price_desc'}" th:text="#{admin.sort.priceDesc}"
+                                    value="price_desc"></option>
+                            <option th:selected="${sort == 'popularity'}" th:text="#{admin.sort.popularity}"
+                                    value="popularity"></option>
+                        </select>
+                    </form>
+                </div>
+
+
+                <div class="col-md-6">
+                    <form method="get" th:action="@{/admin/events}">
+
+                        <input name="dateFrom" th:value="${dateFrom}" type="hidden">
+                        <input name="dateTo" th:value="${dateTo}" type="hidden">
+                        <input name="room" th:value="${room}" type="hidden">
+                        <input name="priceMax" th:value="${priceMax}" type="hidden">
+                        <input name="sort" th:value="${sort}" type="hidden">
+
+                        <label class="form-label" for="search" th:text="#{admin.filter.search}"></label>
+                        <div class="input-group">
+                            <input class="form-control" id="search" name="search" th:placeholder="#{admin.search.name.only}"
+                                   th:value="${search}" type="text">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+                <div class="col-12">
+                    <a class="btn btn-outline-secondary" th:href="@{/admin/events}">
                         <i class="fas fa-undo me-1"></i> <span th:text="#{room.filter.clear}"></span>
                     </a>
                 </div>
             </div>
         </div>
     </div>
+
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <span th:text="#{admin.events.found(${events.size()})}"></span>
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped" id="eventsTable">
+                    <thead>
+                    <tr>
+                        <th th:text="#{event.name}"></th>
+                        <th th:text="#{event.datetime}"></th>
+                        <th th:text="#{event.room}"></th>
+                        <th th:text="#{event.speakers}"></th>
+                        <th th:text="#{event.price}"></th>
+                        <th th:text="#{admin.column.favorites}"></th>
+                        <th class="text-center" th:text="#{admin.column.actions}"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="event : ${events}">
+                        <td>
+                            <a class="fw-bold text-primary" th:href="@{/events/{id}(id=${event.id})}"
+                               th:text="${event.name}"></a>
+                        </td>
+                        <td th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}"></td>
+                        <td th:text="${event.room.name}"></td>
+                        <td>
+                            <span th:text="${#strings.listJoin(event.speakers.![name], ', ')}"></span>
+                            <span class="text-muted fst-italic" th:if="${event.speakers.isEmpty()}"
+                                  th:text="#{admin.no.speakers}"></span>
+                        </td>
+                        <td th:text="${#numbers.formatCurrency(event.price)}"></td>
+                        <td>
+                                    <span class="badge bg-info" th:if="${eventFavorites.containsKey(event.id)}"
+                                          th:text="${eventFavorites.get(event.id)}"></span>
+                            <span class="badge bg-secondary"
+                                  th:unless="${eventFavorites.containsKey(event.id)}">0</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a class="btn btn-info" th:href="@{/events/{id}(id=${event.id})}" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a class="btn btn-warning" th:href="@{/events/{id}/edit(id=${event.id})}" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a class="btn btn-danger" th:href="@{/events/{id}/confirm(id=${event.id})}"
+                                   title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="text-center py-5" th:if="${events.isEmpty()}">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                <p class="lead" th:text="#{admin.no.events.found}"></p>
+                <a class="btn btn-primary mt-2" th:href="@{/admin/events}">
+                    <i class="fas fa-undo me-1"></i> <span th:text="#{room.filter.clear}"></span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

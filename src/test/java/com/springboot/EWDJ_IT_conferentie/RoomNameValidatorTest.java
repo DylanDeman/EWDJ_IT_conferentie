@@ -65,11 +65,7 @@ public class RoomNameValidatorTest {
         }
     }
     
-    /**
-     * Sets up mocks for custom constraint violation with given error message
-     * 
-     * @param errorMessage The error message to use in the violation template
-     */
+
     private void setupCustomConstraintViolation(String errorMessage) {
 
     doNothing().when(context).disableDefaultConstraintViolation();

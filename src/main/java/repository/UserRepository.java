@@ -9,6 +9,4 @@ import domain.MyUser;
 public interface UserRepository extends JpaRepository<MyUser, Long> {
 	MyUser findByUsername(String username);
 
-	boolean existsByUsername(String username);
-
 }

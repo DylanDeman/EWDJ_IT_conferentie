@@ -43,7 +43,7 @@
                                     th:value="${room.id}"
                                     th:text="${room.name}"
                                     th:selected="${param.room != null and param.room[0] == room.id.toString()}">
-                                
+
                             </option>
                         </select>
                     </div>
@@ -80,35 +80,35 @@
         <div th:each="event : ${events}" class="col">
             <div class="card h-100 shadow-sm hover-shadow">
                 <div class="card-body">
-           
+
                     <h5 class="card-title text-primary" th:text="${event.name}"></h5>
 
-           
+
                     <p class="mb-2">
                         <i class="fas fa-user-circle me-2 text-secondary"></i>
                         <strong th:text="#{event.speakers} + ':'"></strong>
                         <span th:each="speaker, iterStat : ${event.speakers}"
                               th:if="${iterStat.index < 3}"
                               th:text="${speaker.name + (iterStat.last || iterStat.index == 2 ? '' : ', ')}">
-                            
+
                         </span>
                     </p>
 
-              
+
                     <p class="mb-2">
                         <i class="fas fa-map-marker-alt me-2 text-secondary"></i>
                         <strong th:text="#{event.room} + ':'"></strong>
                         <span th:text="${event.room.name}"></span>
                     </p>
 
-          
+
                     <p class="mb-2">
                         <i class="far fa-calendar-alt me-2 text-secondary"></i>
                         <strong th:text="#{event.datetime} + ':'"></strong>
-                        <span th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}"></span>
+                        <span th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format_en_BE'))}"></span>
                     </p>
-                    
-                  
+
+
                     <p class="mb-2">
                         <i class="fas fa-tag me-2 text-secondary"></i>
                         <strong th:text="#{event.price} + ':'"></strong>
@@ -120,8 +120,8 @@
         <a th:href="@{/events/{id}(id=${event.id})}" class="btn btn-primary">
             <i class="fas fa-info-circle me-1"></i> <span th:text="#{event.details.button}"></span>
         </a>
-        
-        <span th:if="${userFavorites != null && userFavorites.contains(event)}" 
+
+        <span th:if="${userFavorites != null && userFavorites.contains(event)}"
               class="badge bg-warning text-dark" title="In your favorites">
             <i class="fas fa-star"></i>
         </span>

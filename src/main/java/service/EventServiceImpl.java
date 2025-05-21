@@ -7,10 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import repository.EventRepository;
 import repository.UserRepository;
-import util.DateFormat;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -59,7 +57,7 @@ public class EventServiceImpl implements EventService {
             userRepository.save(user);
         }
         
-        // Delete the event
+
         eventRepository.deleteById(id);
     }
     
@@ -80,31 +78,5 @@ public class EventServiceImpl implements EventService {
                         ),
                         map -> new java.util.ArrayList<>(map.values())
                 ));
-    }
-    
-
-    public LocalDate parseDate(String dateString) {
-        if (dateString == null || dateString.isBlank()) {
-            return null;
-        }
-        
-        try {
-            return LocalDate.parse(dateString, DateFormat.DATE_FORMATTER);
-        } catch (DateTimeParseException e) {
-            // Fallback to ISO format
-            try {
-                return LocalDate.parse(dateString);
-            } catch (DateTimeParseException ex) {
-                throw new IllegalArgumentException("Invalid date format. Expected dd/MM/yyyy", ex);
-            }
-        }
-    }
-    
-
-    public String formatDate(LocalDate date) {
-        if (date == null) {
-            return null;
-        }
-        return date.format(DateFormat.DATE_FORMATTER);
     }
 }

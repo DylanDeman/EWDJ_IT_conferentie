@@ -1,157 +1,161 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:th="http://www.thymeleaf.org">
 <head th:replace="layout/base :: head">
     <title th:text="${event.name} + ' - ' + #{app.name}"></title>
 </head>
 <body>
-    <div th:replace="layout/base :: nav"></div>
+<div th:replace="layout/base :: nav"></div>
 
-    <div class="container mt-4">
-        <div class="mb-3">
-            <a th:href="${returnUrl != null ? returnUrl : '/events'}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i> <span th:text="#{event.back.button}"></span>
-            </a>
+<div class="container mt-4">
+    <div class="mb-3">
+        <a class="btn btn-outline-secondary" th:href="${returnUrl != null ? returnUrl : '/events'}">
+            <i class="fas fa-arrow-left me-1"></i> <span th:text="#{event.back.button}"></span>
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-light py-3">
+            <h1 class="h3 mb-0 text-gray-800" th:text="${event.name}"></h1>
         </div>
-        
-        <div class="card shadow-sm">
-            <div class="card-header bg-light py-3">
-                <h1 class="h3 mb-0 text-gray-800" th:text="${event.name}"></h1>
-            </div>
 
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-             
-                        <div class="mb-4">
-                            <h4 class="text-primary mb-3" th:text="#{event.description}"></h4>
-                            <p class="lead" th:text="${event.description}"></p>
-                        </div>
-                        
-             
-                        <div class="mb-4">
-                            <h4 class="text-primary mb-3" th:text="#{event.speakers}"></h4>
-                            <ul class="list-group list-group-flush" th:if="${event.speakers != null && !event.speakers.empty}">
-                                <li class="list-group-item ps-0 border-0" th:each="speaker : ${event.speakers}">
-                                    <i class="fas fa-user-circle me-2 text-secondary"></i>
-                                    <span th:text="${speaker.name}"></span>
-                                </li>
-                            </ul>
-                            <p th:if="${event.speakers == null || event.speakers.empty}" class="text-muted">
-                                <i class="fas fa-info-circle me-2"></i> No speakers assigned
-                            </p>
-                        </div>
-                        
-              
-                        <div>
-                            <h4 class="text-primary mb-3" th:text="#{event.details}"></h4>
-                            <dl class="row">
-                                <dt class="col-sm-3" th:text="#{event.datetime}"></dt>
-                                <dd class="col-sm-9" th:if="${event.dateTime != null}">
-                                    <i class="far fa-calendar-alt me-2 text-secondary"></i>
-                                    <span th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format'))}"></span>
-                                </dd>
-                                <dd class="col-sm-9" th:if="${event.dateTime == null}">
-                                    <span class="text-muted">Not scheduled</span>
-                                </dd>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
 
-                                <dt class="col-sm-3" th:text="#{event.room}"></dt>
-                                <dd class="col-sm-9" th:if="${event.room != null}">
-                                    <i class="fas fa-map-marker-alt me-2 text-secondary"></i>
-                                    <span th:text="${event.room.name}"></span>
-                                    (<span th:text="${event.room.capacity}"></span> 
-                                    <span th:text="#{event.capacity.seats}"></span>)
-                                </dd>
-                                <dd class="col-sm-9" th:if="${event.room == null}">
-                                    <span class="text-muted">No room assigned</span>
-                                </dd>
-
-                                <dt class="col-sm-3" th:text="#{event.price}"></dt>
-                                <dd class="col-sm-9">
-                                    <i class="fas fa-tag me-2 text-secondary"></i>
-                                    <span th:text="${#numbers.formatCurrency(event.price)}"></span>
-                                </dd>
-
-                                <dt class="col-sm-3" th:text="#{event.beamer.code}"></dt>
-                                <dd class="col-sm-9">
-                                    <i class="fas fa-projector me-2 text-secondary"></i>
-                                    <span th:text="${event.beamerCode}"></span>
-                                </dd>
-                            </dl>
-                        </div>
+                    <div class="mb-4">
+                        <h4 class="text-primary mb-3" th:text="#{event.description}"></h4>
+                        <p class="lead" th:text="${event.description}"></p>
                     </div>
-                    
-                    <div class="col-md-4">
-              
-                        <div sec:authorize="hasRole('ADMIN')" class="mb-4">
-                            <div class="card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
-                                    <div class="d-grid gap-2">
-                                        <a th:href="@{/events/{id}/edit(id=${event.id})}" class="btn btn-warning w-100">
-                                            <i class="fas fa-edit me-1"></i> <span th:text="#{event.edit.button}"></span>
-                                        </a>
-                                        <a th:href="@{/events/{id}/confirm(id=${event.id})}" class="btn btn-danger w-100">
-                                            <i class="fas fa-trash-alt me-1"></i> <span th:text="#{event.delete.button}"></span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                       
-            
-                        <div sec:authorize="hasRole('USER')" class="mb-3">
-                            <!-- Check if isFavorite is provided -->
-                            <div th:if="${isFavorite != null}">
-                                <!-- If isFavorite is true or canAddToFavorites is true -->
-                                <div class="card border-left-primary shadow h-100 py-2" 
-                                     th:if="${isFavorite == true || (canAddToFavorites != null && canAddToFavorites == true)}">
-                                    <div class="card-body">
-                                        <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
-                             
-                                        <!-- If isFavorite is true -->
-                                        <div th:if="${isFavorite == true}" class="mb-3">
-                                            <form th:action="@{/events/{id}/unfavorite(id=${event.id})}" method="post">
-                                                <button type="submit" class="btn btn-danger btn-block w-100">
-                                                    <i class="fas fa-star me-1"></i> <span th:text="#{favorite.remove.button}"></span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                        
-                     
-                                        <!-- If isFavorite is false and canAddToFavorites is true -->
-                                        <div th:if="${isFavorite == false && canAddToFavorites != null && canAddToFavorites == true}" class="mb-3">
-                                            <form th:action="@{/events/{id}/favorite(id=${event.id})}" method="post">
-                                                <button type="submit" class="btn btn-primary btn-block w-100">
-                                                    <i class="far fa-star me-1"></i> <span th:text="#{favorite.add.button}"></span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-       
-                                <!-- If isFavorite is false and canAddToFavorites is false -->
-                                <div th:if="${isFavorite == false && canAddToFavorites != null && canAddToFavorites == false}" class="alert alert-warning">
-                                    <p class="small mb-2" th:text="#{favorite.limit.reached}"></p>
-                                    <a th:href="@{/user/favorites}" class="btn btn-sm btn-outline-primary w-100">
-                                        <i class="fas fa-cog me-1"></i> <span th:text="#{favorite.manage.button}"></span>
+
+
+                    <div class="mb-4">
+                        <h4 class="text-primary mb-3" th:text="#{event.speakers}"></h4>
+                        <ul class="list-group list-group-flush"
+                            th:if="${event.speakers != null && !event.speakers.empty}">
+                            <li class="list-group-item ps-0 border-0" th:each="speaker : ${event.speakers}">
+                                <i class="fas fa-user-circle me-2 text-secondary"></i>
+                                <span th:text="${speaker.name}"></span>
+                            </li>
+                        </ul>
+                        <p class="text-muted" th:if="${event.speakers == null || event.speakers.empty}">
+                            <i class="fas fa-info-circle me-2"></i>
+                        </p>
+                    </div>
+
+
+                    <div>
+                        <h4 class="text-primary mb-3" th:text="#{event.details}"></h4>
+                        <dl class="row">
+                            <dt class="col-sm-3" th:text="#{event.datetime}"></dt>
+                            <dd class="col-sm-9" th:if="${event.dateTime != null}">
+                                <i class="far fa-calendar-alt me-2 text-secondary"></i>
+                                <span th:text="${#temporals.format(event.dateTime, #messages.msg('app.date.format_en_BE'))}"></span>
+                            </dd>
+                            <dd class="col-sm-9" th:if="${event.dateTime == null}">
+                                <span class="text-muted"></span>
+                            </dd>
+
+                            <dt class="col-sm-3" th:text="#{event.room}"></dt>
+                            <dd class="col-sm-9" th:if="${event.room != null}">
+                                <i class="fas fa-map-marker-alt me-2 text-secondary"></i>
+                                <span th:text="${event.room.name}"></span>
+                                (<span th:text="${event.room.capacity}"></span>
+                                <span th:text="#{event.capacity.seats}"></span>)
+                            </dd>
+                            <dd class="col-sm-9" th:if="${event.room == null}">
+                                <span class="text-muted">No room assigned</span>
+                            </dd>
+
+                            <dt class="col-sm-3" th:text="#{event.price}"></dt>
+                            <dd class="col-sm-9">
+                                <i class="fas fa-tag me-2 text-secondary"></i>
+                                <span th:text="${#numbers.formatCurrency(event.price)}"></span>
+                            </dd>
+
+                            <dt class="col-sm-3" th:text="#{event.beamer.code}"></dt>
+                            <dd class="col-sm-9">
+                                <i class="fas fa-video me-2 text-secondary"></i>
+                                <span th:text="${event.beamerCode}"></span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+
+                    <div class="mb-4" sec:authorize="hasRole('ADMIN')">
+                        <div class="card border-left-primary shadow h-100 py-2">
+                            <div class="card-body">
+                                <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
+                                <div class="d-grid gap-2">
+                                    <a class="btn btn-warning w-100" th:href="@{/events/{id}/edit(id=${event.id})}">
+                                        <i class="fas fa-edit me-1"></i> <span th:text="#{event.edit.button}"></span>
+                                    </a>
+                                    <a class="btn btn-danger w-100" th:href="@{/events/{id}/confirm(id=${event.id})}">
+                                        <i class="fas fa-trash-alt me-1"></i> <span
+                                            th:text="#{event.delete.button}"></span>
                                     </a>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-             
-                        <div sec:authorize="isAnonymous()" class="alert alert-info">
-                            <p class="small mb-2" th:text="#{login.required.favorites}"></p>
-                            <a th:href="@{/login}" class="btn btn-sm btn-outline-primary w-100">
-                                <i class="fas fa-sign-in-alt me-1"></i> <span th:text="#{login.button}"></span>
-                            </a>
+
+                    <div class="mb-3" sec:authorize="hasRole('USER')">
+
+                        <div th:if="${isFavorite != null}">
+
+                            <div class="card border-left-primary shadow h-100 py-2"
+                                 th:if="${isFavorite == true || (canAddToFavorites != null && canAddToFavorites == true)}">
+                                <div class="card-body">
+                                    <h5 class="text-primary mb-3" th:text="#{event.actions}"></h5>
+
+
+                                    <div class="mb-3" th:if="${isFavorite == true}">
+                                        <form method="post" th:action="@{/events/{id}/unfavorite(id=${event.id})}">
+                                            <button class="btn btn-danger btn-block w-100" type="submit">
+                                                <i class="fas fa-star me-1"></i> <span
+                                                    th:text="#{favorite.remove.button}"></span>
+                                            </button>
+                                        </form>
+                                    </div>
+
+
+                                    <div class="mb-3"
+                                         th:if="${isFavorite == false && canAddToFavorites != null && canAddToFavorites == true}">
+                                        <form method="post" th:action="@{/events/{id}/favorite(id=${event.id})}">
+                                            <button class="btn btn-primary btn-block w-100" type="submit">
+                                                <i class="far fa-star me-1"></i> <span
+                                                    th:text="#{favorite.add.button}"></span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="alert alert-warning"
+                                 th:if="${isFavorite == false && canAddToFavorites != null && canAddToFavorites == false}">
+                                <p class="small mb-2" th:text="#{favorite.limit.reached}"></p>
+                                <a class="btn btn-sm btn-outline-primary w-100" th:href="@{/user/favorites}">
+                                    <i class="fas fa-cog me-1"></i> <span th:text="#{favorite.manage.button}"></span>
+                                </a>
+                            </div>
                         </div>
+                    </div>
+
+
+                    <div class="alert alert-info" sec:authorize="isAnonymous()">
+                        <p class="small mb-2" th:text="#{login.required.favorites}"></p>
+                        <a class="btn btn-sm btn-outline-primary w-100" th:href="@{/login}">
+                            <i class="fas fa-sign-in-alt me-1"></i> <span th:text="#{login.button}"></span>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </body>
 </html>
