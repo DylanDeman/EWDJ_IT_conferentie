@@ -35,25 +35,25 @@ public class EventController {
 
     @Autowired
     private EventService eventService;
-    
+
     @Autowired
     private RoomService roomService;
-    
+
     @Autowired
     private SpeakerService speakerService;
-    
+
     @Autowired
     private EventValidator eventValidator;
 
     @Autowired
     private UserService userService;
 
-    @GetMapping({ "", "/" })
-    public String listEvents(Model model, 
-                           @RequestParam(required = false) String date,
-                           @RequestParam(required = false) Long room,
-                           @RequestParam(required = false, defaultValue = "datetime") String sort,
-                           @AuthenticationPrincipal UserDetails userDetails) {
+    @GetMapping({"", "/"})
+    public String listEvents(Model model,
+                             @RequestParam(required = false) String date,
+                             @RequestParam(required = false) Long room,
+                             @RequestParam(required = false, defaultValue = "datetime") String sort,
+                             @AuthenticationPrincipal UserDetails userDetails) {
 
         List<Event> events = findFilteredEvents(date, room, sort);
         model.addAttribute("events", events);
@@ -62,7 +62,7 @@ public class EventController {
         if (userDetails != null) {
             String username = userDetails.getUsername();
             model.addAttribute("isAdmin", userService.isAdmin(username));
-            
+
             MyUser user = userService.findByUsername(username);
             model.addAttribute("userFavorites", user.getFavorites());
         }
@@ -72,46 +72,46 @@ public class EventController {
 
     private List<Event> findFilteredEvents(String dateStr, Long roomId, String sortBy) {
         List<Event> events = eventService.findAll();
-        
+
         if (dateStr != null && !dateStr.isEmpty()) {
             LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ISO_DATE);
             events = events.stream()
-                .filter(e -> e.getDateTime() != null && 
-                       e.getDateTime().toLocalDate().equals(date))
-                .collect(Collectors.toList());
+                    .filter(e -> e.getDateTime() != null &&
+                            e.getDateTime().toLocalDate().equals(date))
+                    .collect(Collectors.toList());
         }
-        
+
         if (roomId != null) {
             events = events.stream()
-                .filter(e -> e.getRoom() != null && 
-                       e.getRoom().getId() == roomId)
-                .collect(Collectors.toList());
+                    .filter(e -> e.getRoom() != null &&
+                            e.getRoom().getId() == roomId)
+                    .collect(Collectors.toList());
         }
-        
+
         if ("datetime".equalsIgnoreCase(sortBy)) {
-            events.sort(Comparator.comparing(Event::getDateTime, 
-                        Comparator.nullsLast(Comparator.naturalOrder())));
+            events.sort(Comparator.comparing(Event::getDateTime,
+                    Comparator.nullsLast(Comparator.naturalOrder())));
         } else if ("name".equalsIgnoreCase(sortBy)) {
-            events.sort(Comparator.comparing(Event::getName, 
-                        Comparator.nullsFirst(Comparator.naturalOrder())));
+            events.sort(Comparator.comparing(Event::getName,
+                    Comparator.nullsFirst(Comparator.naturalOrder())));
         } else if ("room".equalsIgnoreCase(sortBy)) {
             events.sort(Comparator.comparing(
-                e -> e.getRoom() != null ? e.getRoom().getName() : "", 
-                Comparator.nullsLast(Comparator.naturalOrder())));
+                    e -> e.getRoom() != null ? e.getRoom().getName() : "",
+                    Comparator.nullsLast(Comparator.naturalOrder())));
         }
-        
+
         return events;
     }
 
     @GetMapping("/{id}")
     public String viewEvent(@PathVariable Long id, Model model, HttpSession session,
-                          @AuthenticationPrincipal UserDetails userDetails) {
+                            @AuthenticationPrincipal UserDetails userDetails) {
         try {
             Optional<Event> eventOpt = eventService.findById(id);
             if (eventOpt.isEmpty()) {
                 throw new IllegalArgumentException("Invalid event id: " + id);
             }
-            
+
             model.addAttribute("event", eventOpt.get());
 
             if (userDetails != null && userService.isAdmin(userDetails.getUsername())) {
@@ -124,11 +124,11 @@ public class EventController {
             if (userDetails != null) {
                 String username = userDetails.getUsername();
                 MyUser user = userService.findByUsername(username);
-                
+
                 boolean isFavorite = user.getFavorites().stream()
-                    .anyMatch(event -> event.getId().equals(id));
+                        .anyMatch(event -> event.getId().equals(id));
                 model.addAttribute("isFavorite", isFavorite);
-                
+
                 boolean canAddMore = user.getFavorites().size() < 5;
                 model.addAttribute("canAddToFavorites", canAddMore);
             } else {
@@ -155,22 +155,22 @@ public class EventController {
 
     @PostMapping("/new")
     public String addEvent(@Valid @ModelAttribute Event event, BindingResult result,
-                         @RequestParam(required = false) Long speaker1Id, 
-                         @RequestParam(required = false) Long speaker2Id,
-                         @RequestParam(required = false) Long speaker3Id, 
-                         @RequestParam Long roomId,
-                         @RequestParam(required = false) String beamerCheck, 
-                         @RequestParam(required = false) String action,
-                         Model model, RedirectAttributes redirectAttributes) {
+                           @RequestParam(required = false) Long speaker1Id,
+                           @RequestParam(required = false) Long speaker2Id,
+                           @RequestParam(required = false) Long speaker3Id,
+                           @RequestParam Long roomId,
+                           @RequestParam(required = false) String beamerCheck,
+                           @RequestParam(required = false) String action,
+                           Model model, RedirectAttributes redirectAttributes) {
 
         setupEvent(event, roomId, speaker1Id, speaker2Id, speaker3Id);
-        
+
         if ("calculate".equals(action)) {
             int calculatedCheck = calculateBeamerCheck(event.getBeamerCode());
             prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, String.valueOf(calculatedCheck));
             return "events/form";
         }
-        
+
         if ("addSpeaker".equals(action)) {
             prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, beamerCheck);
             model.addAttribute("showSpeakerSelection", true);
@@ -182,7 +182,7 @@ public class EventController {
             prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, beamerCheck);
             return "events/form";
         }
-        
+
         try {
             if (beamerCheck != null && !beamerCheck.isEmpty()) {
                 event.setBeamerCheck(Integer.parseInt(beamerCheck));
@@ -193,12 +193,12 @@ public class EventController {
             result.rejectValue("beamerCheck", "error.beamerCheck.format", "Beamer check must be a number");
             model.addAttribute("beamerCheckError", "Beamer check must be a number");
         }
-        
+
         eventValidator.validate(event, result);
-        
+
         if (result.hasErrors()) {
-            prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, 
-                           beamerCheck != null ? beamerCheck : String.valueOf(calculateBeamerCheck(event.getBeamerCode())));
+            prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id,
+                    beamerCheck != null ? beamerCheck : String.valueOf(calculateBeamerCheck(event.getBeamerCode())));
             return "events/form";
         }
 
@@ -208,8 +208,8 @@ public class EventController {
             return "redirect:/admin/events";
         } catch (Exception e) {
             result.rejectValue(null, null, e.getMessage());
-            prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, 
-                           beamerCheck != null ? beamerCheck : String.valueOf(calculateBeamerCheck(event.getBeamerCode())));
+            prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id,
+                    beamerCheck != null ? beamerCheck : String.valueOf(calculateBeamerCheck(event.getBeamerCode())));
             return "events/form";
         }
     }
@@ -221,7 +221,7 @@ public class EventController {
         if (eventOpt.isEmpty()) {
             return "redirect:/events";
         }
-        
+
         Event event = eventOpt.get();
         prepareModelForForm(model, event, null, null, null, String.valueOf(event.getBeamerCheck()));
         return "events/form";
@@ -229,14 +229,14 @@ public class EventController {
 
     @PutMapping("/{id}/edit")
     public String editEvent(@PathVariable Long id, @ModelAttribute Event event, BindingResult result,
-                          @RequestParam Long roomId, 
-                          @RequestParam(required = false) Long speaker1Id,
-                          @RequestParam(required = false) Long speaker2Id, 
-                          @RequestParam(required = false) Long speaker3Id,
-                          @RequestParam(required = false) String beamerCheck, 
-                          @RequestParam(required = false) String action, 
-                          Model model,
-                          RedirectAttributes redirectAttributes) {
+                            @RequestParam Long roomId,
+                            @RequestParam(required = false) Long speaker1Id,
+                            @RequestParam(required = false) Long speaker2Id,
+                            @RequestParam(required = false) Long speaker3Id,
+                            @RequestParam(required = false) String beamerCheck,
+                            @RequestParam(required = false) String action,
+                            Model model,
+                            RedirectAttributes redirectAttributes) {
 
         setupEvent(event, roomId, speaker1Id, speaker2Id, speaker3Id);
 
@@ -245,7 +245,7 @@ public class EventController {
             prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, String.valueOf(calculatedCheck));
             return "events/form";
         }
-        
+
         if ("addSpeaker".equals(action)) {
             prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, beamerCheck);
             model.addAttribute("showSpeakerSelection", true);
@@ -272,8 +272,8 @@ public class EventController {
         eventValidator.validate(event, result);
 
         if (result.hasErrors()) {
-            prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, 
-                           beamerCheck != null ? beamerCheck : String.valueOf(calculateBeamerCheck(event.getBeamerCode())));
+            prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id,
+                    beamerCheck != null ? beamerCheck : String.valueOf(calculateBeamerCheck(event.getBeamerCode())));
             return "events/form";
         }
 
@@ -283,8 +283,8 @@ public class EventController {
             return "redirect:/admin/events";
         } catch (Exception e) {
             result.rejectValue("", "", e.getMessage());
-            prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id, 
-                           beamerCheck != null ? beamerCheck : String.valueOf(calculateBeamerCheck(event.getBeamerCode())));
+            prepareModelForForm(model, event, speaker1Id, speaker2Id, speaker3Id,
+                    beamerCheck != null ? beamerCheck : String.valueOf(calculateBeamerCheck(event.getBeamerCode())));
             return "events/form";
         }
     }
@@ -296,46 +296,46 @@ public class EventController {
                 event.setRoom(roomOpt.get());
             }
         }
-        
+
         List<Speaker> speakers = new ArrayList<>();
-        
+
         if (speaker1Id != null && speaker1Id > 0) {
             Speaker speaker1 = speakerService.findById(speaker1Id);
             if (speaker1 != null) {
                 speakers.add(speaker1);
             }
         }
-        
+
         if (speaker2Id != null && speaker2Id > 0) {
             Speaker speaker2 = speakerService.findById(speaker2Id);
             if (speaker2 != null) {
                 speakers.add(speaker2);
             }
         }
-        
+
         if (speaker3Id != null && speaker3Id > 0) {
             Speaker speaker3 = speakerService.findById(speaker3Id);
             if (speaker3 != null) {
                 speakers.add(speaker3);
             }
         }
-        
+
         event.setSpeakers(speakers);
     }
 
     private void prepareModelForForm(Model model, Event event, Long speaker1Id, Long speaker2Id, Long speaker3Id, String beamerCheck) {
         model.addAttribute("event", event);
         model.addAttribute("rooms", roomService.getAllRooms());
-        
+
         List<Speaker> speakers = speakerService.findAll();
-        model.addAttribute("allSpeakers", speakers);  
+        model.addAttribute("allSpeakers", speakers);
         model.addAttribute("speakers", speakers);
-        
+
         model.addAttribute("beamerCheck", beamerCheck);
         model.addAttribute("speaker1Id", speaker1Id);
         model.addAttribute("speaker2Id", speaker2Id);
         model.addAttribute("speaker3Id", speaker3Id);
-        
+
         List<Speaker> speakerList = event.getSpeakers();
         if (speakerList != null && !speakerList.isEmpty()) {
             if (speakerList.size() >= 1) {
@@ -357,7 +357,7 @@ public class EventController {
                 }
             }
         }
-        
+
         if (event.getRoom() != null) {
             model.addAttribute("selectedRoomId", event.getRoom().getId());
         }
@@ -382,12 +382,12 @@ public class EventController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}/confirm")
     public String confirmDeleteEvent(@PathVariable Long id, Model model, HttpSession session) {
-        String referer = session.getAttribute("adminEventsUrl") != null ? 
-                        (String) session.getAttribute("adminEventsUrl") : 
-                        "/admin/events";
-        
+        String referer = session.getAttribute("adminEventsUrl") != null ?
+                (String) session.getAttribute("adminEventsUrl") :
+                "/admin/events";
+
         Optional<Event> eventOptional = eventService.findById(id);
-        
+
         if (eventOptional.isPresent()) {
             model.addAttribute("event", eventOptional.get());
             model.addAttribute("returnUrl", referer);

@@ -23,6 +23,7 @@ import repository.SpeakerRepository;
 import repository.UserRepository;
 import util.Role;
 
+
 @Component
 public class InitDataConfig implements CommandLineRunner {
 
@@ -41,7 +42,6 @@ public class InitDataConfig implements CommandLineRunner {
 	private final PasswordEncoder encoder = new BCryptPasswordEncoder();
 	private final Random random = new Random();
 
-
 	@Override
 	public void run(String... args) throws Exception {
 		List<MyUser> users = new ArrayList<>();
@@ -57,19 +57,20 @@ public class InitDataConfig implements CommandLineRunner {
 		users.add(MyUser.builder().username("Hannah").password(encoder.encode("password")).role(Role.USER).build());
 		userRepository.saveAll(users);
 
+
 		List<Room> rooms = new ArrayList<>();
-		rooms.add(Room.builder().name("A101").capacity(30).build());
-		rooms.add(Room.builder().name("A102").capacity(40).build());
-		rooms.add(Room.builder().name("A103").capacity(50).build());
-		rooms.add(Room.builder().name("B201").capacity(25).build());
-		rooms.add(Room.builder().name("B202").capacity(35).build());
-		rooms.add(Room.builder().name("B203").capacity(45).build());
-		rooms.add(Room.builder().name("C301").capacity(20).build());
-		rooms.add(Room.builder().name("C302").capacity(30).build());
-		rooms.add(Room.builder().name("C303").capacity(40).build());
-		rooms.add(Room.builder().name("D401").capacity(15).build());
-		rooms.add(Room.builder().name("D402").capacity(25).build());
-		rooms.add(Room.builder().name("D403").capacity(35).build());
+		rooms.add(createRoom("A101", 30));
+		rooms.add(createRoom("A102", 40));
+		rooms.add(createRoom("A103", 50));
+		rooms.add(createRoom("B201", 25));
+		rooms.add(createRoom("B202", 35));
+		rooms.add(createRoom("B203", 45));
+		rooms.add(createRoom("C301", 20));
+		rooms.add(createRoom("C302", 30));
+		rooms.add(createRoom("C303", 40));
+		rooms.add(createRoom("D401", 15));
+		rooms.add(createRoom("D402", 25));
+		rooms.add(createRoom("D403", 35));
 		roomRepository.saveAll(rooms);
 
 		List<Speaker> speakers = new ArrayList<>();
@@ -104,7 +105,7 @@ public class InitDataConfig implements CommandLineRunner {
 		speakerRepository.saveAll(speakers);
 
 		List<LocalDateTime> timeSlots = new ArrayList<>();
-		for (int day = 1; day <= 10; day++) { // Extended to 10 days to accommodate more events
+		for (int day = 1; day <= 10; day++) {
 			timeSlots.add(LocalDateTime.of(2025, 6, day, 9, 0));
 			timeSlots.add(LocalDateTime.of(2025, 6, day, 11, 0));
 			timeSlots.add(LocalDateTime.of(2025, 6, day, 14, 0));
@@ -113,7 +114,7 @@ public class InitDataConfig implements CommandLineRunner {
 
 		List<Event> events = new ArrayList<>();
 
-		// Original events with 1-2 speakers
+
 		events.add(Event.builder().name("Spring Boot Fundamentals")
 				.description("An introduction to Spring Boot core concepts")
 				.speakers(List.of(speakers.get(0), speakers.get(1))).room(rooms.get(0)).dateTime(timeSlots.get(0))
@@ -280,10 +281,18 @@ public class InitDataConfig implements CommandLineRunner {
 		setFavoritesForUsers(users, events);
 	}
 
-	private void setFavoritesForUsers(List<MyUser> users, List<Event> events) {
-		final int MAX_FAVORITES = 15; // Increased maximum favorites
 
-		// Track which users will have more favorites
+	private Room createRoom(String name, Integer capacity) {
+		Room room = new Room();
+		room.setName(name);
+		room.setCapacity(capacity);
+		return room;
+	}
+
+	private void setFavoritesForUsers(List<MyUser> users, List<Event> events) {
+		final int MAX_FAVORITES = 5;
+
+
 		boolean[] powerUsers = {false, false, true, false, true, true, false, true, false, false};
 
 		int userIndex = 0;
@@ -297,9 +306,9 @@ public class InitDataConfig implements CommandLineRunner {
 
 			// Power users get many more favorites
 			if (userIndex < powerUsers.length && powerUsers[userIndex]) {
-				numFavorites = random.nextInt(MAX_FAVORITES - 8) + 8; // 8-15 favorites
+				numFavorites = random.nextInt(MAX_FAVORITES - 3) + 3;
 			} else {
-				numFavorites = random.nextInt(4) + 1; // 1-4 favorites for regular users
+				numFavorites = random.nextInt(4) + 1;
 			}
 
 			if (user.getFavorites() == null) {

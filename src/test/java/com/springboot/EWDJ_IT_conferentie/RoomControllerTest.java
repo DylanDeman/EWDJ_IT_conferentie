@@ -6,20 +6,25 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import DTO.RoomWithEventCount;
 import domain.Event;
 import domain.Room;
 import service.RoomService;
@@ -44,18 +49,19 @@ public class RoomControllerTest {
         roomController = new RoomController();
         ReflectionTestUtils.setField(roomController, "roomService", roomService);
         ReflectionTestUtils.setField(roomController, "messageSource", messageSource);
-
-        when(messageSource.getMessage(anyString(), any(), any(Locale.class))).thenReturn("Message");
     }
 
     @Test
     public void testListRooms_NoFilters() {
-        List<Room> rooms = Arrays.asList(new Room(), new Room());
-        when(roomService.filterRooms(null, null, "name")).thenReturn(rooms);
+        List<RoomWithEventCount> rooms = Arrays.asList(
+                createRoomWithEventCount(1L, "Room 1", 50, 2),
+                createRoomWithEventCount(2L, "Room 2", 100, 0)
+        );
+        when(roomService.filterRoomsWithEventCount(null, null, "name")).thenReturn(rooms);
 
         String viewName = roomController.listRooms(model, null, null, "name");
 
-        verify(roomService).filterRooms(null, null, "name");
+        verify(roomService).filterRoomsWithEventCount(null, null, "name");
         verify(model).addAttribute("rooms", rooms);
         verify(model).addAttribute("sortFilter", "name");
         assert viewName.equals("rooms/list");
@@ -63,12 +69,15 @@ public class RoomControllerTest {
 
     @Test
     public void testListRooms_WithFilters() {
-        List<Room> rooms = Arrays.asList(new Room(), new Room());
-        when(roomService.filterRooms(50, "conference", "capacity")).thenReturn(rooms);
+        List<RoomWithEventCount> rooms = Arrays.asList(
+                createRoomWithEventCount(1L, "Conference Room", 50, 1),
+                createRoomWithEventCount(2L, "Conference Hall", 200, 3)
+        );
+        when(roomService.filterRoomsWithEventCount(50, "conference", "capacity")).thenReturn(rooms);
 
         String viewName = roomController.listRooms(model, 50, "conference", "capacity");
 
-        verify(roomService).filterRooms(50, "conference", "capacity");
+        verify(roomService).filterRoomsWithEventCount(50, "conference", "capacity");
         verify(model).addAttribute("rooms", rooms);
         verify(model).addAttribute("capacityFilter", 50);
         verify(model).addAttribute("searchFilter", "conference");
@@ -110,16 +119,21 @@ public class RoomControllerTest {
     public void testAddRoom_Success() {
         Room room = createRoom(null, "New Room", 200);
         Room savedRoom = createRoom(1L, "New Room", 200);
+        Locale locale = Locale.ENGLISH;
 
         when(bindingResult.hasErrors()).thenReturn(false);
         when(roomService.save(room)).thenReturn(savedRoom);
-        when(messageSource.getMessage(eq("room.added"), any(), any(Locale.class))).thenReturn("Room added");
 
-        String viewName = roomController.addRoom(room, bindingResult, redirectAttributes);
+        try (MockedStatic<LocaleContextHolder> localeHolder = mockStatic(LocaleContextHolder.class)) {
+            localeHolder.when(LocaleContextHolder::getLocale).thenReturn(locale);
+            when(messageSource.getMessage(eq("room.added"), any(), eq(locale))).thenReturn("Room added");
 
-        verify(roomService).save(room);
-        verify(redirectAttributes).addFlashAttribute("message", "Room added");
-        assert viewName.equals("redirect:/rooms");
+            String viewName = roomController.addRoom(room, bindingResult, redirectAttributes);
+
+            verify(roomService).save(room);
+            verify(redirectAttributes).addFlashAttribute("message", "Room added");
+            assert viewName.equals("redirect:/rooms");
+        }
     }
 
     @Test
@@ -148,13 +162,40 @@ public class RoomControllerTest {
 
     @Test
     public void testConfirmDeleteRoom_ExistingRoom() {
-        Room room = createRoom(1L, "Room to Delete", 50);
-        when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
+        // Updated test to use RoomWithEventCount
+        List<RoomWithEventCount> rooms = Arrays.asList(
+                createRoomWithEventCount(1L, "Room to Delete", 50, 0),
+                createRoomWithEventCount(2L, "Other Room", 100, 2)
+        );
+        
+        when(roomService.filterRoomsWithEventCount(null, null, "name")).thenReturn(rooms);
 
         String viewName = roomController.confirmDeleteRoom(1L, model, 100, "test", "name");
 
-        verify(roomService).getRoomById(1L);
-        verify(model).addAttribute("room", room);
+        verify(roomService).filterRoomsWithEventCount(null, null, "name");
+        verify(model).addAttribute("room", rooms.get(0));
+        verify(model).addAttribute("canDelete", true);
+        verify(model).addAttribute("capacityFilter", 100);
+        verify(model).addAttribute("searchFilter", "test");
+        verify(model).addAttribute("sortFilter", "name");
+        assert viewName.equals("rooms/confirm-delete");
+    }
+
+    @Test
+    public void testConfirmDeleteRoom_RoomWithEvents() {
+        // Room with events
+        List<RoomWithEventCount> rooms = Arrays.asList(
+                createRoomWithEventCount(1L, "Room with Events", 50, 3),
+                createRoomWithEventCount(2L, "Other Room", 100, 2)
+        );
+        
+        when(roomService.filterRoomsWithEventCount(null, null, "name")).thenReturn(rooms);
+
+        String viewName = roomController.confirmDeleteRoom(1L, model, 100, "test", "name");
+
+        verify(roomService).filterRoomsWithEventCount(null, null, "name");
+        verify(model).addAttribute("room", rooms.get(0));
+        verify(model).addAttribute("canDelete", false);
         verify(model).addAttribute("capacityFilter", 100);
         verify(model).addAttribute("searchFilter", "test");
         verify(model).addAttribute("sortFilter", "name");
@@ -163,11 +204,16 @@ public class RoomControllerTest {
 
     @Test
     public void testConfirmDeleteRoom_NonExistentRoom() {
-        when(roomService.getRoomById(999L)).thenReturn(Optional.empty());
+        // Empty list simulating room not found
+        List<RoomWithEventCount> rooms = Arrays.asList(
+                createRoomWithEventCount(2L, "Other Room", 100, 2)
+        );
+        
+        when(roomService.filterRoomsWithEventCount(null, null, "name")).thenReturn(rooms);
 
-        String viewName = roomController.confirmDeleteRoom(999L, model, 100, "test", "name");
+        String viewName = roomController.confirmDeleteRoom(1L, model, 100, "test", "name");
 
-        verify(roomService).getRoomById(999L);
+        verify(roomService).filterRoomsWithEventCount(null, null, "name");
         assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
     }
 
@@ -175,16 +221,21 @@ public class RoomControllerTest {
     public void testDeleteRoom_Success() {
         Room room = createRoom(1L, "Room to Delete", 50);
         room.setEvents(Collections.emptySet());
+        Locale locale = Locale.ENGLISH;
 
         when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
-        when(messageSource.getMessage(eq("room.deleted"), any(), any(Locale.class))).thenReturn("Room deleted");
 
-        String viewName = roomController.deleteRoom(1L, 100, "test", "name", redirectAttributes);
+        try (MockedStatic<LocaleContextHolder> localeHolder = mockStatic(LocaleContextHolder.class)) {
+            localeHolder.when(LocaleContextHolder::getLocale).thenReturn(locale);
+            when(messageSource.getMessage(eq("room.deleted"), any(), eq(locale))).thenReturn("Room deleted");
 
-        verify(roomService).getRoomById(1L);
-        verify(roomService).deleteById(1L);
-        verify(redirectAttributes).addFlashAttribute("message", "Room deleted");
-        assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
+            String viewName = roomController.deleteRoom(1L, 100, "test", "name", redirectAttributes);
+
+            verify(roomService).getRoomById(1L);
+            verify(roomService).deleteById(1L);
+            verify(redirectAttributes).addFlashAttribute("message", "Room deleted");
+            assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
+        }
     }
 
     @Test
@@ -192,16 +243,21 @@ public class RoomControllerTest {
         Room room = createRoom(1L, "Room with Events", 50);
         List<Event> eventList = Arrays.asList(new Event(), new Event());
         room.setEvents(new HashSet<>(eventList));
+        Locale locale = Locale.ENGLISH;
 
         when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
-        when(messageSource.getMessage(eq("room.delete.events"), any(), any(Locale.class))).thenReturn("Cannot delete room with events");
 
-        String viewName = roomController.deleteRoom(1L, 100, "test", "name", redirectAttributes);
+        try (MockedStatic<LocaleContextHolder> localeHolder = mockStatic(LocaleContextHolder.class)) {
+            localeHolder.when(LocaleContextHolder::getLocale).thenReturn(locale);
+            when(messageSource.getMessage(eq("room.delete.events"), any(), eq(locale))).thenReturn("Cannot delete room with events");
 
-        verify(roomService).getRoomById(1L);
-        verify(roomService, times(0)).deleteById(anyLong());
-        verify(redirectAttributes).addFlashAttribute("error", "Cannot delete room with events");
-        assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
+            String viewName = roomController.deleteRoom(1L, 100, "test", "name", redirectAttributes);
+
+            verify(roomService).getRoomById(1L);
+            verify(roomService, times(0)).deleteById(anyLong());
+            verify(redirectAttributes).addFlashAttribute("error", "Cannot delete room with events");
+            assert viewName.equals("redirect:/rooms?capacity=100&search=test&sort=name");
+        }
     }
 
     @Test
@@ -262,6 +318,10 @@ public class RoomControllerTest {
         room.setCapacity(capacity);
         room.setEvents(new HashSet<>());
         return room;
+    }
+
+    private RoomWithEventCount createRoomWithEventCount(Long id, String name, int capacity, int eventCount) {
+        return new RoomWithEventCount(id, name, capacity, (long) eventCount);
     }
 
     @SuppressWarnings("unchecked")

@@ -1,5 +1,6 @@
 package com.springboot.EWDJ_IT_conferentie;
 
+import DTO.RoomWithEventCount;
 import domain.Room;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +28,15 @@ public class RoomController {
     private MessageSource messageSource;
 
     @GetMapping
-    public String listRooms(Model model, 
-                          @RequestParam(required = false) Integer capacity,
-                          @RequestParam(required = false) String search,
-                          @RequestParam(required = false, defaultValue = "name") String sort) {
-        
-        List<Room> rooms = roomService.filterRooms(capacity, search, sort);
+    public String listRooms(Model model,
+                            @RequestParam(required = false) Integer capacity,
+                            @RequestParam(required = false) String search,
+                            @RequestParam(required = false, defaultValue = "name") String sort) {
+
+
+        List<RoomWithEventCount> rooms = roomService.filterRoomsWithEventCount(capacity, search, sort);
         model.addAttribute("rooms", rooms);
-        
+
         if (capacity != null) {
             model.addAttribute("capacityFilter", capacity);
         }
@@ -42,7 +44,7 @@ public class RoomController {
             model.addAttribute("searchFilter", search);
         }
         model.addAttribute("sortFilter", sort);
-        
+
         return "rooms/list";
     }
     
@@ -86,23 +88,34 @@ public class RoomController {
             return "rooms/form";
         }
     }
-    
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}/confirm")
-    public String confirmDeleteRoom(@PathVariable Long id, 
-                                 Model model,
-                                 @RequestParam(required = false) Integer capacity,
-                                 @RequestParam(required = false) String search,
-                                 @RequestParam(required = false) String sort) {
-        
-        Optional<Room> roomOpt = roomService.getRoomById(id);
+    public String confirmDeleteRoom(@PathVariable Long id,
+                                    Model model,
+                                    @RequestParam(required = false) Integer capacity,
+                                    @RequestParam(required = false) String search,
+                                    @RequestParam(required = false) String sort) {
+
+
+        List<RoomWithEventCount> rooms = roomService.filterRoomsWithEventCount(null, null, "name");
+
+
+        Optional<RoomWithEventCount> roomOpt = rooms.stream()
+                .filter(room -> room.getId().equals(id))
+                .findFirst();
+
         if (roomOpt.isEmpty()) {
             return buildRedirectUrl("redirect:/rooms", capacity, search, sort);
         }
-        
-        Room room = roomOpt.get();
+
+        RoomWithEventCount room = roomOpt.get();
         model.addAttribute("room", room);
-        
+
+
+        boolean canDelete = room.getEventCount() == 0;
+        model.addAttribute("canDelete", canDelete);
+
         if (capacity != null) {
             model.addAttribute("capacityFilter", capacity);
         }
@@ -110,7 +123,7 @@ public class RoomController {
             model.addAttribute("searchFilter", search);
         }
         model.addAttribute("sortFilter", sort);
-        
+
         return "rooms/confirm-delete";
     }
     
@@ -151,9 +164,9 @@ public class RoomController {
         return buildRedirectUrl("redirect:/rooms", capacity, search, sort);
     }
     
-    // Helper method
+
     private String buildRedirectUrl(String baseUrl, Integer capacity, String search, String sort) {
-        // Ensure baseUrl doesn't end with a slash to prevent double slashes
+
         if (baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }

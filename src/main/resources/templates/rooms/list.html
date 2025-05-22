@@ -1,166 +1,167 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="layout/base :: head">
     <title th:text="#{room.list.title} + ' - ' + #{app.name}"></title>
 </head>
 <body>
-    <div th:replace="layout/base :: nav"></div>
+<div th:replace="layout/base :: nav"></div>
 
-    <div class="container mt-4">
-        <div class="row mb-4">
-            <div class="col">
-                <h1 class="h3 text-gray-800">
-                    <i class="fas fa-door-open me-2 text-primary"></i>
-                    <span th:text="#{room.list.title}"></span>
-                </h1>
-            </div>
-            <div class="col-auto" sec:authorize="hasRole('ADMIN')">
-                <a th:href="@{/rooms/new}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>
-                    <span th:text="#{room.create.button}"></span>
-                </a>
-            </div>
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h3 text-gray-800">
+                <i class="fas fa-door-open me-2 text-primary"></i>
+                <span th:text="#{room.list.title}"></span>
+            </h1>
         </div>
-
-
-<div th:if="${message}" class="alert alert-success mb-4" role="alert">
-    <i class="fas fa-check-circle me-2"></i>
-    <span th:text="${message}"></span>
-    <a th:href="@{/rooms}" class="float-end text-decoration-none">×</a>
-</div>
-
-<div th:if="${error}" class="alert alert-danger mb-4" role="alert">
-    <i class="fas fa-exclamation-circle me-2"></i>
-    <span th:text="${error}"></span>
-    <a th:href="@{/rooms}" class="float-end text-decoration-none">×</a>
-</div>
-
-   
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-light py-3">
-                <h5 class="mb-0 text-primary">
-                    <i class="fas fa-filter me-2"></i>
-                    <span th:text="'Filter ' + #{room.list.title}"></span>
-                </h5>
-            </div>
-            <div class="card-body">
-                <form id="filterForm" th:action="@{/rooms}" method="get" class="row g-3">
-                    <div class="col-md-4">
-                        <label for="capacity" class="form-label" th:text="#{room.filter.capacity}"></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-users"></i></span>
-                            <input type="number" class="form-control" id="capacity" name="capacity" 
-                                   th:value="${capacityFilter}" min="1" th:placeholder="#{room.capacity.placeholder}"
-                                   onchange="this.form.submit();">
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label for="sort" class="form-label" th:text="#{room.filter.sort}"></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="fas fa-sort"></i></span>
-                            <select class="form-select" id="sort" name="sort" onchange="this.form.submit();">
-                                <option value="name" th:selected="${sortFilter == null or sortFilter == 'name'}"
-                                        th:text="#{room.sort.name}"></option>
-                                <option value="capacity" th:selected="${sortFilter == 'capacity'}"
-                                        th:text="#{room.sort.capacity}"></option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <a th:href="@{/rooms}" class="btn btn-outline-secondary">
-                            <i class="fas fa-undo me-1"></i>
-                            <span th:text="#{room.filter.clear}"></span>
-                        </a>
-                        <noscript>
-                            <button type="submit" class="btn btn-primary ms-2">
-                                <i class="fas fa-check me-1"></i>
-                                <span th:text="#{room.filter.apply}"></span>
-                            </button>
-                        </noscript>
-                    </div>
-                </form>
-            </div>
+        <div class="col-auto" sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/rooms/new}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>
+                <span th:text="#{room.create.button}"></span>
+            </a>
         </div>
+    </div>
 
- 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <span class="badge bg-primary me-2" th:text="${rooms.size()}"></span>
-                <span th:text="#{room.showing.results}"></span>
-            </div>
+
+    <div th:if="${message}" class="alert alert-success mb-4" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${message}"></span>
+        <a th:href="@{/rooms}" class="float-end text-decoration-none">×</a>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger mb-4" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}"></span>
+        <a th:href="@{/rooms}" class="float-end text-decoration-none">×</a>
+    </div>
+
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light py-3">
+            <h5 class="mb-0 text-primary">
+                <i class="fas fa-filter me-2"></i>
+                <span th:text="'Filter ' + #{room.list.title}"></span>
+            </h5>
         </div>
+        <div class="card-body">
+            <form id="filterForm" th:action="@{/rooms}" method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="capacity" class="form-label" th:text="#{room.filter.capacity}"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-users"></i></span>
+                        <input type="number" class="form-control" id="capacity" name="capacity"
+                               th:value="${capacityFilter}" min="1" th:placeholder="#{room.capacity.placeholder}"
+                               onchange="this.form.submit();">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label for="sort" class="form-label" th:text="#{room.filter.sort}"></label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-sort"></i></span>
+                        <select class="form-select" id="sort" name="sort" onchange="this.form.submit();">
+                            <option value="name" th:selected="${sortFilter == null or sortFilter == 'name'}"
+                                    th:text="#{room.sort.name}"></option>
+                            <option value="capacity" th:selected="${sortFilter == 'capacity'}"
+                                    th:text="#{room.sort.capacity}"></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <a th:href="@{/rooms}" class="btn btn-outline-secondary">
+                        <i class="fas fa-undo me-1"></i>
+                        <span th:text="#{room.filter.clear}"></span>
+                    </a>
+                    <noscript>
+                        <button type="submit" class="btn btn-primary ms-2">
+                            <i class="fas fa-check me-1"></i>
+                            <span th:text="#{room.filter.apply}"></span>
+                        </button>
+                    </noscript>
+                </div>
+            </form>
+        </div>
+    </div>
 
 
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-            <div th:each="room : ${rooms}" class="col">
-                <div class="card h-100 shadow-sm hover-shadow">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary">
-                            <i class="fas fa-door-open me-2"></i>
-                     
-                            <span th:if="${searchFilter != null and !searchFilter.isEmpty()}" 
-                                  th:utext="${#strings.replace(room.name.toLowerCase(), searchFilter.toLowerCase(), 
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <span class="badge bg-primary me-2" th:text="${rooms.size()}"></span>
+            <span th:text="#{room.showing.results}"></span>
+        </div>
+    </div>
+
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div th:each="room : ${rooms}" class="col">
+            <div class="card h-100 shadow-sm hover-shadow">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">
+                        <i class="fas fa-door-open me-2"></i>
+
+                        <span th:if="${searchFilter != null and !searchFilter.isEmpty()}"
+                              th:utext="${#strings.replace(room.name.toLowerCase(), searchFilter.toLowerCase(),
                                             '<span class=\'highlight\'>' + searchFilter.toLowerCase() + '</span>')}">
                                 
                             </span>
-                            <span th:unless="${searchFilter != null and !searchFilter.isEmpty()}" 
-                                  th:text="${room.name}"></span>
-                        </h5>
-                        <dl class="row mt-3 mb-0">
-                            <dt class="col-sm-4">
-                                <i class="fas fa-users me-1 text-secondary"></i>
-                                <span th:text="#{room.capacity}"></span>
-                            </dt>
-                            <dd class="col-sm-8">
-                                <span class="badge bg-primary rounded-pill" th:text="${room.capacity}"></span>
-                                <span th:text="#{room.capacity.seats}"></span>
-                            </dd>
-                            
-                            <dt class="col-sm-4">
-                                <i class="fas fa-calendar-alt me-1 text-secondary"></i>
-                                <span th:text="#{room.events}"></span>
-                            </dt>
-                            <dd class="col-sm-8">
-                                <span class="badge bg-info rounded-pill" th:text="${room.events.size()}"></span>
-                                <span th:text="#{room.events.scheduled}" th:if="${room.events.size() == 1}"></span>
-                                <span th:text="#{room.events.scheduled.plural}" th:unless="${room.events.size() == 1}"></span>
-                            </dd>
-                        </dl>
-                    </div>
-                    <div class="card-footer bg-white border-top-0 pt-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div sec:authorize="hasRole('ADMIN')" class="btn-group">
-                                <!-- Use a separate page for confirmation -->
-                                <a th:href="@{/rooms/{id}/confirm(id=${room.id},
+                        <span th:unless="${searchFilter != null and !searchFilter.isEmpty()}"
+                              th:text="${room.name}"></span>
+                    </h5>
+                    <dl class="row mt-3 mb-0">
+                        <dt class="col-sm-4">
+                            <i class="fas fa-users me-1 text-secondary"></i>
+                            <span th:text="#{room.capacity}"></span>
+                        </dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-primary rounded-pill" th:text="${room.capacity}"></span>
+                            <span th:text="#{room.capacity.seats}"></span>
+                        </dd>
+
+
+                        <dt class="col-sm-4">
+                            <i class="fas fa-calendar-alt me-1 text-secondary"></i>
+                            <span th:text="#{room.events}"></span>
+                        </dt>
+                        <dd class="col-sm-8">
+                            <!-- FIXED: Using DTO eventCount property -->
+                            <span class="badge bg-info rounded-pill" th:text="${room.eventCount}"></span>
+                            <span th:text="#{room.events.scheduled}" th:if="${room.eventCount == 1}"></span>
+                            <span th:text="#{room.events.scheduled.plural}" th:unless="${room.eventCount == 1}"></span>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="card-footer bg-white border-top-0 pt-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div sec:authorize="hasRole('ADMIN')" class="btn-group">
+                            <a th:href="@{/rooms/{id}/confirm(id=${room.id},
                                                 capacity=${capacityFilter},
                                                 search=${searchFilter},
-                                                sort=${sortFilter})}" 
-                                   class="btn btn-danger">
-                                    <i class="fas fa-trash-alt me-1"></i>
-                                    <span th:text="#{room.delete.button}"></span>
-                                </a>
-                            </div>
+                                                sort=${sortFilter})}"
+                               class="btn btn-danger">
+                                <i class="fas fa-trash-alt me-1"></i>
+                                <span th:text="#{room.delete.button}"></span>
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-  
-        <div th:if="${#lists.isEmpty(rooms)}" class="text-center mt-4 p-5 bg-light rounded shadow-sm">
-            <i class="fas fa-door-closed fa-4x text-muted mb-3"></i>
-            <p class="lead" th:if="${searchFilter != null and !searchFilter.isEmpty()}" th:text="#{room.search.empty}">
-    
-            </p>
-            <p class="lead" th:unless="${searchFilter != null and !searchFilter.isEmpty()}" th:text="#{room.list.empty}">
- 
-            </p>
-            <a th:href="@{/rooms}" class="btn btn-primary mt-2">
-                <i class="fas fa-undo me-1"></i>
-                <span th:text="#{room.filter.clear}"></span>
-            </a>
-        </div>
     </div>
+
+
+    <div th:if="${#lists.isEmpty(rooms)}" class="text-center mt-4 p-5 bg-light rounded shadow-sm">
+        <i class="fas fa-door-closed fa-4x text-muted mb-3"></i>
+        <p class="lead" th:if="${searchFilter != null and !searchFilter.isEmpty()}" th:text="#{room.search.empty}">
+
+        </p>
+        <p class="lead" th:unless="${searchFilter != null and !searchFilter.isEmpty()}" th:text="#{room.list.empty}">
+
+        </p>
+        <a th:href="@{/rooms}" class="btn btn-primary mt-2">
+            <i class="fas fa-undo me-1"></i>
+            <span th:text="#{room.filter.clear}"></span>
+        </a>
+    </div>
+</div>
 </body>
 </html>

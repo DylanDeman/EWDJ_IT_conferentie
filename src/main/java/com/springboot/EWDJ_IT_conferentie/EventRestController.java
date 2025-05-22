@@ -1,14 +1,12 @@
 package com.springboot.EWDJ_IT_conferentie;
 
 import domain.Event;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import service.EventService;
-
 import service.UserService;
 
 import java.time.LocalDate;
@@ -21,14 +19,11 @@ import java.util.List;
 @RequestMapping(value = "/api/events")
 public class EventRestController {
 
+    private static final DateTimeFormatter DASH_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     @Autowired
     private EventService eventService;
-
     @Autowired
     private UserService userService;
-
-    private static final DateTimeFormatter DASH_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
 
     @GetMapping(value = "/{date}")
     public List<Event> getEventsByDate(@PathVariable String date) {

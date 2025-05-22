@@ -1,5 +1,6 @@
 package service;
 
+import DTO.RoomWithEventCount;
 import domain.Room;
 
 import java.util.List;
@@ -12,5 +13,8 @@ public interface RoomService {
     Room save(Room room);
     void deleteById(Long id);
     boolean existsByName(String name);
-    List<Room> filterRooms(Integer capacity, String search, String sort);
+
+    List<RoomWithEventCount> filterRoomsWithEventCount(Integer capacity, String search, String sort);
+
+    Optional<RoomWithEventCount> getRoomWithEventCountById(Long id);
 }

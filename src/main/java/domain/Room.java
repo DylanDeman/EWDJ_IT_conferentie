@@ -11,7 +11,6 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Data
 @JsonIgnoreProperties({"events"})
 public class Room {

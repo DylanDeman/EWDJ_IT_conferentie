@@ -20,14 +20,17 @@
                 <div class="card-body">
                     <p class="mb-0" th:text="#{room.delete.confirm}"></p>
                     <div class="alert alert-warning mt-3" role="alert">
-                        <strong></strong> <span th:text="${room.name}"></span>
+                        <strong th:text="${room.name}"></strong>
                         <div>
-                            <strong th:text="#{room.capacity} + ':'"></strong> <span th:text="${room.capacity}"></span> 
+                            <strong th:text="#{room.capacity} + ':'"></strong> <span th:text="${room.capacity}"></span>
                             <span th:text="#{room.capacity.seats}"></span>
                         </div>
-                        <div th:if="${!room.events.isEmpty()}" class="mt-2 text-danger">
-                            <strong th:text="#{room.delete.events.warning(${room.events.size()})}"></strong>
-                            <div th:text="#{room.delete.events.notice}"></div>
+                        <div th:if="${!canDelete}" class="mt-3 text-danger">
+                            <div class="border border-danger rounded p-2 bg-light">
+                                <i class="fas fa-exclamation-circle me-1"></i>
+                                <strong th:text="#{room.delete.events.warning(${room.eventCount})}"></strong>
+                                <div class="mt-1 small" th:text="#{room.delete.events.notice}"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -37,20 +40,33 @@
                         <i class="fas fa-arrow-left me-1"></i>
                         <span th:text="#{form.cancel}"></span>
                     </a>
-                    <form th:action="@{/rooms/{id}/delete(id=${room.id})}" method="post">
-                        <input type="hidden" name="capacity" th:value="${capacityFilter}" th:if="${capacityFilter != null}">
-                        <input type="hidden" name="search" th:value="${searchFilter}" th:if="${searchFilter != null}">
-                        <input type="hidden" name="sort" th:value="${sortFilter}" th:if="${sortFilter != null}">
 
-                        <button type="submit" class="btn btn-danger" th:disabled="${!room.events.isEmpty()}">
-                            <i class="fas fa-trash-alt me-1"></i>
+                    <div th:if="${canDelete}">
+                        <form th:action="@{/rooms/{id}/delete(id=${room.id})}" method="post" class="d-inline">
+                            <input type="hidden" name="capacity" th:value="${capacityFilter}" th:if="${capacityFilter != null}">
+                            <input type="hidden" name="search" th:value="${searchFilter}" th:if="${searchFilter != null}">
+                            <input type="hidden" name="sort" th:value="${sortFilter}" th:if="${sortFilter != null}">
+
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt me-1"></i>
+                                <span th:text="#{room.delete.button}"></span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div th:if="${!canDelete}" class="text-end">
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                disabled>
+                            <i class="fas fa-ban me-1"></i>
                             <span th:text="#{room.delete.button}"></span>
                         </button>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 </body>
 </html>
