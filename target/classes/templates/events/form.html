@@ -97,7 +97,7 @@
                                 </label>
                                 <select class="form-select" id="roomId" name="roomId" required
                                         th:classappend="${#fields.hasErrors('room')} ? 'is-invalid'">
-                                    <option th:text="#{event.room.select}" th:value="__none__"></option>
+                                    <option disabled selected value="" th:text="#{event.room.select}">Select a room</option>
                                     <option th:each="room : ${rooms}"
                                             th:selected="${event.room != null and room.id == event.room.id}"
                                             th:text="${room.name + ' (' + room.capacity + ' ' + #messages.msg('event.capacity.seats') + ')'}"
@@ -136,7 +136,7 @@
                                     </label>
                                     <div class="input-group">
                                         <input class="form-control" id="beamerCode" max="9999"
-                                               min="0"
+                                               min="1000"
                                                required th:classappend="${#fields.hasErrors('beamerCode')} ? 'is-invalid'" th:field="*{beamerCode}"
                                                th:placeholder="#{event.beamer.code.placeholder}"
                                                type="number">

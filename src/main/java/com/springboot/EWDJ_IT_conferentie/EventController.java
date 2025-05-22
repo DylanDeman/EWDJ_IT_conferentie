@@ -4,6 +4,7 @@ import domain.Event;
 import domain.MyUser;
 import domain.Room;
 import domain.Speaker;
+import exceptions.EventNotFoundException;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,10 +109,8 @@ public class EventController {
                             @AuthenticationPrincipal UserDetails userDetails) {
         try {
             Optional<Event> eventOpt = eventService.findById(id);
-            if (eventOpt.isEmpty()) {
-                throw new IllegalArgumentException("Invalid event id: " + id);
-            }
-
+            // EventNotFoundException is now thrown by findById if event doesn't exist
+            
             model.addAttribute("event", eventOpt.get());
 
             if (userDetails != null && userService.isAdmin(userDetails.getUsername())) {
@@ -136,7 +135,7 @@ public class EventController {
             }
 
             return "events/detail";
-        } catch (IllegalArgumentException e) {
+        } catch (EventNotFoundException e) {
             model.addAttribute("error", e.getMessage());
             return "error";
         } catch (Exception e) {
@@ -217,14 +216,15 @@ public class EventController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}/edit")
     public String showEditEventForm(@PathVariable Long id, Model model) {
-        Optional<Event> eventOpt = eventService.findById(id);
-        if (eventOpt.isEmpty()) {
-            return "redirect:/events";
+        try {
+            Optional<Event> eventOpt = eventService.findById(id);
+            Event event = eventOpt.get();
+            prepareModelForForm(model, event, null, null, null, String.valueOf(event.getBeamerCheck()));
+            return "events/form";
+        } catch (EventNotFoundException e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
         }
-
-        Event event = eventOpt.get();
-        prepareModelForForm(model, event, null, null, null, String.valueOf(event.getBeamerCheck()));
-        return "events/form";
     }
 
     @PutMapping("/{id}/edit")
@@ -373,6 +373,8 @@ public class EventController {
         try {
             eventService.deleteById(id);
             redirectAttributes.addFlashAttribute("message", "Event deleted successfully");
+        } catch (EventNotFoundException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error deleting event: " + e.getMessage());
         }
@@ -386,14 +388,14 @@ public class EventController {
                 (String) session.getAttribute("adminEventsUrl") :
                 "/admin/events";
 
-        Optional<Event> eventOptional = eventService.findById(id);
-
-        if (eventOptional.isPresent()) {
+        try {
+            Optional<Event> eventOptional = eventService.findById(id);
             model.addAttribute("event", eventOptional.get());
             model.addAttribute("returnUrl", referer);
             return "events/confirm-delete";
-        } else {
-            return "redirect:" + referer;
+        } catch (EventNotFoundException e) {
+            model.addAttribute("error", e.getMessage());
+            return "error";
         }
     }
 }

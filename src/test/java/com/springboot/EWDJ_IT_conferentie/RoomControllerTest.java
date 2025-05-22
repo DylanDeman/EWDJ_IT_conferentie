@@ -85,27 +85,6 @@ public class RoomControllerTest {
         assert viewName.equals("rooms/list");
     }
 
-    @Test
-    public void testViewRoom_ExistingRoom() {
-        Room room = createRoom(1L, "Hall A", 100);
-        when(roomService.getRoomById(1L)).thenReturn(Optional.of(room));
-
-        String viewName = roomController.viewRoom(1L, model);
-
-        verify(roomService).getRoomById(1L);
-        verify(model).addAttribute("room", room);
-        assert viewName.equals("rooms/detail");
-    }
-
-    @Test
-    public void testViewRoom_NonExistentRoom() {
-        when(roomService.getRoomById(999L)).thenReturn(Optional.empty());
-
-        String viewName = roomController.viewRoom(999L, model);
-
-        verify(roomService).getRoomById(999L);
-        assert viewName.equals("redirect:/rooms");
-    }
 
     @Test
     public void testShowAddRoomForm() {

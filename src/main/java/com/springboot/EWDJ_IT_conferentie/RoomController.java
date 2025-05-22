@@ -23,7 +23,7 @@ public class RoomController {
 
     @Autowired
     private RoomService roomService;
-    
+
     @Autowired
     private MessageSource messageSource;
 
@@ -47,29 +47,18 @@ public class RoomController {
 
         return "rooms/list";
     }
-    
-    @GetMapping("/{id}")
-    public String viewRoom(@PathVariable Long id, Model model) {
-        Optional<Room> roomOpt = roomService.getRoomById(id);
-        if (roomOpt.isEmpty()) {
-            return "redirect:/rooms";
-        }
-        
-        model.addAttribute("room", roomOpt.get());
-        return "rooms/detail";
-    }
-    
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/new")
     public String showAddRoomForm(Model model) {
         model.addAttribute("room", new Room());
         return "rooms/form";
     }
-    
+
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/new")
-    public String addRoom(@Valid @ModelAttribute Room room, 
-                        BindingResult result, 
+    public String addRoom(@Valid @ModelAttribute Room room,
+                        BindingResult result,
                         RedirectAttributes redirectAttributes) {
         
         if (result.hasErrors()) {
@@ -175,7 +164,7 @@ public class RoomController {
         boolean hasParams = false;
         
         if (capacity != null) {
-            redirectUrl.append(hasParams ? "&capacity=" : "?capacity=").append(capacity);
+            redirectUrl.append("?capacity=").append(capacity);
             hasParams = true;
         }
         
