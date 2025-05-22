@@ -29,12 +29,12 @@ public class SecurityConfig {
 		http.csrf(csrf -> csrf.csrfTokenRepository(new HttpSessionCsrfTokenRepository()));
 
 		http.authorizeHttpRequests(requests -> requests.requestMatchers("/login**", "/css/**", "/accessdenied**")
-				.permitAll().requestMatchers("/", "/events", "/events/", "/events/{id}").permitAll()
-				.requestMatchers("/api/events/**").permitAll()
+				.permitAll().requestMatchers("/", "/events", "/events/").permitAll()
+				.requestMatchers("/api/events/**", "/api/rooms/{name}/{capacity}").permitAll()
 
 				.requestMatchers("/events/*/favorite", "/events/*/unfavorite").hasRole("USER")
 
-				.requestMatchers("/events/new", "/events", "/events/*/edit", "/events/*/delete").hasRole("ADMIN")
+				.requestMatchers("/events/new", "/events", "/events/*/edit", "/events/*/delete").hasRole("ADMIN").requestMatchers("/events/{id}").hasAnyRole("ADMIN", "USER")
 
 				.anyRequest().authenticated())
 				.formLogin(form -> form.loginPage("/login").defaultSuccessUrl("/events", true).permitAll())
